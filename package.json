@@ -22,6 +22,36 @@
         "default": "./dist/index.cjs"
       }
     },
+    "./dist/icon": {
+      "import": {
+        "types": "./dist/icon.d.mts",
+        "default": "./dist/icon.mjs"
+      },
+      "require": {
+        "types": "./dist/icon.d.cts",
+        "default": "./dist/icon.cjs"
+      }
+    },
+    "./dist/utils": {
+      "import": {
+        "types": "./dist/utils.d.mts",
+        "default": "./dist/utils.mjs"
+      },
+      "require": {
+        "types": "./dist/utils.d.cts",
+        "default": "./dist/utils.cjs"
+      }
+    },
+    "./dist/wallet": {
+      "import": {
+        "types": "./dist/wallet.d.mts",
+        "default": "./dist/wallet.mjs"
+      },
+      "require": {
+        "types": "./dist/wallet.d.cts",
+        "default": "./dist/wallet.cjs"
+      }
+    },
     "./package.json": "./package.json"
   },
   "main": "./dist/index.cjs",
@@ -47,7 +77,6 @@
     "test:watch": "vitest --watch"
   },
   "dependencies": {
-    "@metamask/multichain-api-client": "file:../multichain-api-client",
     "@solana/wallet-standard-chains": "^1.1.1",
     "@solana/wallet-standard-features": "^1.3.0",
     "@wallet-standard/base": "^1.1.0",
@@ -61,6 +90,7 @@
     "@lavamoat/allow-scripts": "^3.0.4",
     "@lavamoat/preinstall-always-fail": "^2.0.0",
     "@metamask/auto-changelog": "^5.0.1",
+    "@metamask/multichain-api-client": "file:../multichain-api-client",
     "@ts-bridge/cli": "^0.6.3",
     "@types/node": "^22.13.13",
     "@vitest/coverage-istanbul": "^3.0.7",
