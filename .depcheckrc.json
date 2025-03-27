@@ -13,6 +13,7 @@
     "eslint-config-*",
     "eslint-import-resolver-typescript",
     "eslint-plugin-*",
+    "prettier",
     "prettier-plugin-packagejson",
     "ts-node",
     "typedoc",

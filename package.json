@@ -1,14 +1,14 @@
 {
-  "name": "@metamask/metamask-module-template",
+  "name": "@metamask/solana-wallet-standard",
   "version": "0.0.0",
   "description": "The MetaMask Node module template",
-  "homepage": "https://github.com/MetaMask/metamask-module-template#readme",
+  "homepage": "https://github.com/MetaMask/solana-wallet-standard#readme",
   "bugs": {
-    "url": "https://github.com/MetaMask/metamask-module-template/issues"
+    "url": "https://github.com/MetaMask/solana-wallet-standard/issues"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/MetaMask/metamask-module-template.git"
+    "url": "https://github.com/MetaMask/solana-wallet-standard.git"
   },
   "sideEffects": false,
   "exports": {
@@ -33,47 +33,44 @@
   "scripts": {
     "build": "ts-bridge --project tsconfig.build.json --clean",
     "build:docs": "typedoc",
-    "lint": "yarn lint:eslint && yarn lint:constraints && yarn lint:misc --check && yarn lint:dependencies --check && yarn lint:changelog",
+    "build:types": "tsc --project tsconfig.build.json",
+    "format": "biome format",
+    "format:fix": "biome format --write",
+    "lint": "yarn lint:biome && yarn lint:constraints && yarn lint:dependencies --check && yarn lint:changelog",
     "lint:changelog": "auto-changelog validate --prettier",
     "lint:constraints": "yarn constraints",
     "lint:dependencies": "depcheck && yarn dedupe",
-    "lint:eslint": "eslint . --cache",
-    "lint:fix": "yarn lint:eslint --fix && yarn lint:constraints --fix && yarn lint:misc --write && yarn lint:dependencies && yarn lint:changelog",
-    "lint:misc": "prettier '**/*.json' '**/*.md' '**/*.yml' '!.yarnrc.yml' --ignore-path .gitignore --no-error-on-unmatched-pattern",
+    "lint:biome": "biome check",
+    "lint:fix": "yarn lint:biome --fix && yarn format:fix && yarn lint:constraints --fix && yarn lint:dependencies && yarn lint:changelog",
     "prepack": "./scripts/prepack.sh",
     "test": "vitest && attw --pack",
     "test:watch": "vitest --watch"
   },
+  "dependencies": {
+    "@metamask/multichain-api-client": "file:../multichain-api-client",
+    "@solana/wallet-standard-chains": "^1.1.1",
+    "@solana/wallet-standard-features": "^1.3.0",
+    "@wallet-standard/base": "^1.1.0",
+    "@wallet-standard/features": "^1.1.0",
+    "@wallet-standard/wallet": "^1.1.0",
+    "bs58": "^6.0.0"
+  },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.15.3",
+    "@biomejs/biome": "1.9.4",
     "@lavamoat/allow-scripts": "^3.0.4",
     "@lavamoat/preinstall-always-fail": "^2.0.0",
     "@metamask/auto-changelog": "^5.0.1",
-    "@metamask/eslint-config": "^14.0.0",
-    "@metamask/eslint-config-nodejs": "^14.0.0",
-    "@metamask/eslint-config-typescript": "^14.0.0",
-    "@metamask/eslint-config-vitest": "^1.0.0",
     "@ts-bridge/cli": "^0.6.3",
-    "@types/node": "^18.18",
-    "@typescript-eslint/utils": "^8.6.0",
+    "@types/node": "^22.13.13",
     "@vitest/coverage-istanbul": "^3.0.7",
     "@vitest/eslint-plugin": "^1.1.4",
     "@yarnpkg/types": "^4.0.0-rc.52",
     "depcheck": "^1.4.3",
-    "eslint": "^9.11.0",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-import-resolver-typescript": "^3.6.3",
-    "eslint-plugin-import-x": "^4.3.0",
-    "eslint-plugin-jsdoc": "^50.2.4",
-    "eslint-plugin-n": "^17.10.3",
-    "eslint-plugin-prettier": "^5.2.1",
-    "eslint-plugin-promise": "^7.1.0",
-    "prettier": "^3.3.3",
-    "prettier-plugin-packagejson": "^2.5.8",
+    "prettier": "^3.5.3",
     "ts-node": "^10.7.0",
     "typedoc": "^0.26.11",
     "typescript": "~5.7.3",
-    "typescript-eslint": "^8.6.0",
     "vite": "^6.2.4",
     "vitest": "^3.0.7"
   },
@@ -88,7 +85,8 @@
   "lavamoat": {
     "allowScripts": {
       "@lavamoat/preinstall-always-fail": false,
-      "vite>esbuild": false
+      "vite>esbuild": false,
+      "@biomejs/biome": false
     }
   }
 }
