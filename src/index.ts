@@ -1,9 +1,13 @@
-/**
- * Example function that returns a greeting for the given name.
- *
- * @param name - The name to greet.
- * @returns The greeting.
- */
-export default function greeter(name: string): string {
-  return `Hello, ${name}!`;
+import type { MultichainApiClient } from '@metamask/multichain-api-client';
+import { registerWallet } from '@wallet-standard/wallet';
+import { MetamaskWallet } from './wallet';
+
+export function getWalletStandard({ client }: { client: MultichainApiClient }) {
+  return new MetamaskWallet({ client });
+}
+
+export async function registerSolanaWalletStandard({ client }: { client: MultichainApiClient }) {
+  const wallet = getWalletStandard({ client });
+
+  registerWallet(wallet);
 }

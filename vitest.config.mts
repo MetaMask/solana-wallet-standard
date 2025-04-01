@@ -17,13 +17,7 @@ export default defineConfig({
       provider: 'istanbul',
 
       // The files to include in the coverage report.
-      include: [
-        'src/**/*.ts',
-        'src/**/*.tsx',
-        'src/**/*.js',
-        'src/**/*.jsx',
-        'src/**/*.mjs',
-      ],
+      include: ['src/**/*.ts', 'src/**/*.tsx', 'src/**/*.js', 'src/**/*.jsx', 'src/**/*.mjs'],
 
       // The files to exclude from the coverage report. Vitest excludes test
       // files by default, but not `test-d.ts` files.
