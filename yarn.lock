@@ -672,8 +672,8 @@ __metadata:
 
 "@metamask/multichain-api-client@file:../multichain-api-client::locator=%40metamask%2Fsolana-wallet-standard%40workspace%3A.":
   version: 0.0.0
-  resolution: "@metamask/multichain-api-client@file:../multichain-api-client#../multichain-api-client::hash=afa335&locator=%40metamask%2Fsolana-wallet-standard%40workspace%3A."
-  checksum: 10/fba391c38228f00cfc8882cd969d334189fcd91026d6717ab74c0b1086d587d55f33eceeddbb260ac47c54d1b0508f876e69001a2a1bec55137cb5d580e9f053
+  resolution: "@metamask/multichain-api-client@file:../multichain-api-client#../multichain-api-client::hash=493475&locator=%40metamask%2Fsolana-wallet-standard%40workspace%3A."
+  checksum: 10/45c9a9a6d8935f02e3f36b4e2115fe5128586e24ffdee81586dd9dfb435f50d8d80c033a67c7fdf446ad22dc57b48842505a34eaf0fb7186b11c304d2f485e8c
   languageName: node
   linkType: hard
 
@@ -703,7 +703,7 @@ __metadata:
     ts-node: "npm:^10.7.0"
     typedoc: "npm:^0.26.11"
     typescript: "npm:~5.7.3"
-    vite: "npm:^6.2.4"
+    vite: "npm:^6.2.5"
     vitest: "npm:^3.0.7"
   languageName: unknown
   linkType: soft
@@ -4742,9 +4742,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:^6.2.4":
-  version: 6.2.4
-  resolution: "vite@npm:6.2.4"
+"vite@npm:^6.2.5":
+  version: 6.2.5
+  resolution: "vite@npm:6.2.5"
   dependencies:
     esbuild: "npm:^0.25.0"
     fsevents: "npm:~2.3.3"
@@ -4790,7 +4790,7 @@ __metadata:
       optional: true
   bin:
     vite: bin/vite.js
-  checksum: 10/3734c8695b4d35a5b3ea617159594835e370b428745f37e90d9c1daf82b53af5248578c1f1d9977fc1460320c0cdd4aef135095d378b2eba2736c03e2cfa019e
+  checksum: 10/354023589439e7e2bcb77af79d24cd06ce20cfc48b409e663c44e515b373b89eb8f29362223eac16a3ff080d3114e40bc5df158372279d92ad03eb270f9e9762
   languageName: node
   linkType: hard
 
