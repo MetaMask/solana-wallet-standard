@@ -39,8 +39,8 @@ import {
 import { ReadonlyWalletAccount } from '@wallet-standard/wallet';
 import bs58 from 'bs58';
 import { metamaskIcon } from './icon';
-import type { CaipAccountId, DeepWriteable } from './types';
-import { getAddressFromCaipAccountId } from './utils';
+import type { DeepWriteable } from './types';
+import { defaultScope, getScopeFromWalletStandardChain } from './utils';
 
 export class MetamaskWalletAccount extends ReadonlyWalletAccount {
   constructor({ address, publicKey, chains }: { address: string; publicKey: Uint8Array; chains: IdentifierArray }) {
@@ -63,7 +63,6 @@ export class MetamaskWallet implements Wallet {
   readonly name = 'MetaMask (Injected pkg)' as const;
   readonly icon = metamaskIcon;
   readonly chains: SolanaChain[] = [SOLANA_MAINNET_CHAIN, SOLANA_DEVNET_CHAIN, SOLANA_TESTNET_CHAIN];
-  readonly scope = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
   #account: MetamaskWalletAccount | undefined;
 
   client: MultichainApiClient;
@@ -147,11 +146,11 @@ export class MetamaskWallet implements Wallet {
       });
 
       // If there's no existing accounts for this session scope, create a new one
-      const session: SessionData | undefined = existingSession?.sessionScopes[this.scope]?.accounts?.length
+      const session: SessionData | undefined = existingSession?.sessionScopes[defaultScope]?.accounts?.length
         ? existingSession
         : await this.client.createSession({
             optionalScopes: {
-              [this.scope]: {
+              [defaultScope]: {
                 methods: [],
                 notifications: [],
               },
@@ -161,7 +160,7 @@ export class MetamaskWallet implements Wallet {
             },
           });
 
-      const accounts = session?.sessionScopes[this.scope]?.accounts;
+      const accounts = session?.sessionScopes[defaultScope]?.accounts;
 
       if (!accounts?.length || accounts?.[0] === undefined) {
         throw new Error('No accounts found in MetaMask session');
@@ -184,7 +183,7 @@ export class MetamaskWallet implements Wallet {
 
     for (const input of inputs) {
       const signInRes = await this.client.invokeMethod({
-        scope: this.scope,
+        scope: defaultScope,
         request: {
           method: 'signIn',
           params: {
@@ -214,22 +213,46 @@ export class MetamaskWallet implements Wallet {
   #signAndSendTransaction = async (
     ...inputs: SolanaSignAndSendTransactionInput[]
   ): Promise<SolanaSignAndSendTransactionOutput[]> => {
-    if (!this.#account) {
+    const account = this.#account;
+    if (!account?.address) {
       throw new Error('No account found');
     }
+
+    this.#validateSendTransactionInput(inputs);
+
+    const scope = getScopeFromWalletStandardChain(inputs[0]?.chain);
+    const session = await this.client.getSession();
+    const sessionAccounts = session?.sessionScopes[scope]?.accounts;
+
+    // Update session if account isn't permissioned for this scope
+    if (!sessionAccounts?.includes(`${scope}:${account.address}`)) {
+      await this.client.createSession({
+        ...session,
+        optionalScopes: {
+          ...session?.sessionScopes,
+          [scope]: {
+            accounts: [...(sessionAccounts ?? []), `${scope}:${account.address}`],
+          },
+        },
+        sessionProperties: {
+          solana_accountChanged_notifications: true,
+        },
+      });
+    }
+
     const results: SolanaSignAndSendTransactionOutput[] = [];
 
     for (const { transaction: transactionBuffer, account } of inputs) {
       const transaction = Buffer.from(transactionBuffer).toString('base64');
 
       const signAndSendTransactionRes = await this.client.invokeMethod({
-        scope: this.scope,
+        scope,
         request: {
           method: 'signAndSendTransaction',
           params: {
             account: { address: account.address },
             transaction,
-            scope: this.scope,
+            scope,
           },
         },
       });
@@ -249,13 +272,13 @@ export class MetamaskWallet implements Wallet {
       const transaction = Buffer.from(transactionBuffer).toString('base64');
 
       const signTransactionRes = await this.client.invokeMethod({
-        scope: this.scope,
+        scope: defaultScope,
         request: {
           method: 'signTransaction',
           params: {
             account: { address: account.address },
             transaction,
-            scope: this.scope,
+            scope: defaultScope,
           },
         },
       });
@@ -275,7 +298,7 @@ export class MetamaskWallet implements Wallet {
       const message = Buffer.from(messageBuffer).toString('base64');
 
       const signMessageRes = await this.client.invokeMethod({
-        scope: this.scope,
+        scope: defaultScope,
         request: {
           method: 'signMessage',
           params: {
@@ -313,4 +336,23 @@ export class MetamaskWallet implements Wallet {
       chains: this.chains,
     });
   }
+
+  #validateSendTransactionInput = (inputs: SolanaSignAndSendTransactionInput[]) => {
+    const accountAddress = this.#account?.address;
+    const firstChain = inputs[0]?.chain;
+
+    for (const {
+      account: { address: transactionAddress },
+      chain,
+    } of inputs) {
+      // Verify all transactions are on the same and connected account
+      if (transactionAddress !== accountAddress) {
+        throw new Error('Invalid transaction addresses');
+      }
+      // Verify all transactions are on the same chain
+      if (chain !== firstChain) {
+        throw new Error('All transactions must be on the same chain');
+      }
+    }
+  };
 }
