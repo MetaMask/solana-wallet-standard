@@ -27,6 +27,7 @@ import type { IdentifierArray, Wallet } from '@wallet-standard/base';
 import {
   StandardConnect,
   type StandardConnectFeature,
+  type StandardConnectOutput,
   StandardDisconnect,
   type StandardDisconnectFeature,
   StandardEvents,
@@ -135,21 +136,24 @@ export class MetamaskWallet implements Wallet {
     this.#listeners[event] = this.#listeners[event]?.filter((existingListener) => listener !== existingListener);
   }
 
-  #connect = async () => {
+  #connect = async (): Promise<StandardConnectOutput> => {
     if (!this.accounts.length) {
       const existingSession = await this.client.getSession();
+
+      this.client.onNotification((data: any) => {
+        if (data?.params?.notification?.method === 'metamask_accountsChanged') {
+          this.#handleAccountsChangedEvent(data);
+        }
+      });
+
       // If there's no existing accounts for this session scope, create a new one
       const session: SessionData | undefined = existingSession?.sessionScopes[this.scope]?.accounts?.length
         ? existingSession
         : await this.client.createSession({
             optionalScopes: {
               [this.scope]: {
-                methods: ['getGenesisHash', 'signMessage'],
+                methods: [],
                 notifications: [],
-                accounts: [
-                  `${this.scope}:6AwJL1LnMjwsB8GkJCPexEwznnhpiMV4DHv8QsRLtnNc`,
-                  `${this.scope}:3BKnSHdTwfpXC28tERtHBcd11tgtMTJ1iX4wzyueUUaL`,
-                ] as CaipAccountId[],
               },
             },
             sessionProperties: {
@@ -162,17 +166,6 @@ export class MetamaskWallet implements Wallet {
       if (!accounts?.length || accounts?.[0] === undefined) {
         throw new Error('No accounts found in MetaMask session');
       }
-
-      // Set the first account as selected
-      this.#account = this.#getAccountFromAddress(getAddressFromCaipAccountId(accounts[0]));
-
-      this.client.onNotification((data: any) => {
-        if (data?.params?.notification?.method === 'metamask_accountsChanged') {
-          this.#handleAccountsChangedEvent(data);
-        }
-      });
-
-      this.#emit('change', { accounts: this.accounts });
     }
 
     return { accounts: this.accounts };
@@ -214,6 +207,7 @@ export class MetamaskWallet implements Wallet {
 
   #disconnect = async () => {
     this.#account = undefined;
+    this.#emit('change', { accounts: this.accounts });
     await this.client.revokeSession();
   };
 
@@ -307,6 +301,8 @@ export class MetamaskWallet implements Wallet {
     if (address) {
       this.#account = this.#getAccountFromAddress(address);
       this.#emit('change', { accounts: this.accounts });
+    } else {
+      this.#disconnect();
     }
   }
 
