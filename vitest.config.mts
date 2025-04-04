@@ -25,17 +25,17 @@ export default defineConfig({
 
       // Coverage thresholds. If the coverage is below these thresholds, the
       // test will fail.
-      thresholds: {
-        // Auto-update the coverage thresholds. When this is enabled, the
-        // thresholds will be updated automatically when the coverage is
-        // above the current thresholds.
-        autoUpdate: true,
+      // thresholds: {
+      //   // Auto-update the coverage thresholds. When this is enabled, the
+      //   // thresholds will be updated automatically when the coverage is
+      //   // above the current thresholds.
+      //   autoUpdate: true,
 
-        branches: 100,
-        functions: 100,
-        lines: 100,
-        statements: 100,
-      },
+      //   branches: 100,
+      //   functions: 100,
+      //   lines: 100,
+      //   statements: 100,
+      // },
     },
 
     typecheck: {

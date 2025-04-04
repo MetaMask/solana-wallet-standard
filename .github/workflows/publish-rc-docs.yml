@@ -2,7 +2,9 @@ name: Publish release candidate docs to GitHub Pages
 
 on:
   push:
-    branches: 'release/**'
+    # branches: 'release/**'
+    branches-ignore:
+      - "*"
 
 jobs:
   get-release-version:
