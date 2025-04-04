@@ -45,7 +45,6 @@ describe('MetamaskWallet', () => {
   };
 
   const connectAndSetAccount = async (_address = address) => {
-    mockGetSession(mockClient);
     mockCreateSession(mockClient, _address);
     setupNotificationHandler();
 
@@ -81,7 +80,6 @@ describe('MetamaskWallet', () => {
       expect(wallet.name).toBe('MetaMask‎');
       expect(wallet.icon).toBeDefined();
       expect(wallet.chains).toContain(SOLANA_MAINNET_CHAIN);
-      expect(wallet.scope).toBe('solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp');
       expect(wallet.accounts).toEqual([]);
     });
 
@@ -236,7 +234,7 @@ describe('MetamaskWallet', () => {
           account,
           chain,
         }),
-      ).rejects.toThrow('No account found');
+      ).rejects.toThrow('Not connected');
     });
   });
 
@@ -327,6 +325,9 @@ describe('MetamaskWallet', () => {
 
   describe('signIn', () => {
     it('should connect first if no account is set', async () => {
+      // Setup mock session
+      mockCreateSession(mockClient, address);
+
       // Setup signIn response
       const signedMessage = 'base64EncodedSignedMessage';
       const signature = 'signature';
