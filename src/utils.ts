@@ -1,4 +1,5 @@
-import type { CaipAccountId } from './types';
+import { SOLANA_DEVNET_CHAIN, SOLANA_MAINNET_CHAIN, SOLANA_TESTNET_CHAIN } from '@solana/wallet-standard-chains';
+import { type CaipAccountId, type CaipChainIdStruct, Scopes, scopes } from './types';
 
 export const CAIP_ACCOUNT_ID_REGEX =
   /^(?<chainId>(?<namespace>[-a-z0-9]{3,8}):(?<reference>[-_a-zA-Z0-9]{1,32})):(?<accountAddress>[-.%a-zA-Z0-9]{1,128})$/u;
@@ -17,3 +18,23 @@ export function getAddressFromCaipAccountId(caipAccountId: CaipAccountId) {
 
   return match.groups.accountAddress!;
 }
+
+export function getScopeFromWalletStandardChain(chainId: CaipChainIdStruct | undefined): Scopes {
+  switch (chainId) {
+    case SOLANA_MAINNET_CHAIN:
+    case undefined:
+      return Scopes.SOLANA;
+    case SOLANA_TESTNET_CHAIN:
+      return Scopes.SOLANA_TESTNET;
+    case SOLANA_DEVNET_CHAIN:
+      return Scopes.SOLANA_DEVNET;
+    default: {
+      if (scopes.includes(chainId as Scopes)) {
+        return chainId as Scopes;
+      }
+      throw new Error(`Unsupported chainId: ${chainId}`);
+    }
+  }
+}
+
+export const defaultScope = Scopes.SOLANA;
