@@ -12,7 +12,14 @@ or
 
 ## Usage
 
-_Add examples here_
+```typescript
+import { getMultichainClient, getDefaultTransport } from '@metamask/multichain-api-client';
+import { client } from '@metamask/solana-wallet-standard';
+
+const client = await getMultichainClient({ transport: getDefaultTransport() });
+
+registerSolanaWalletStandard({ client });
+```
 
 ## API
 
