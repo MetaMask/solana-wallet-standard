@@ -2,7 +2,7 @@
   "name": "@metamask/solana-wallet-standard",
   "version": "0.0.0",
   "license": "ISC",
-  "description": "The MetaMask Solana wallet-standard implementation.",
+  "description": "The MetaMask Solana wallet-standard implementation",
   "homepage": "https://github.com/MetaMask/solana-wallet-standard#readme",
   "bugs": {
     "url": "https://github.com/MetaMask/solana-wallet-standard/issues"
