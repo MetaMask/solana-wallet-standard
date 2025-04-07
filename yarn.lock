@@ -639,9 +639,9 @@ __metadata:
   linkType: hard
 
 "@metamask/multichain-api-client@file:../multichain-api-client::locator=%40metamask%2Fsolana-wallet-standard%40workspace%3A.":
-  version: 0.0.1
-  resolution: "@metamask/multichain-api-client@file:../multichain-api-client#../multichain-api-client::hash=724a0a&locator=%40metamask%2Fsolana-wallet-standard%40workspace%3A."
-  checksum: 10/6f046488348e432eda8af383084a1375746f768da58193ef94bc8fbdfad19114f56ebf5f18306eeebb3a283487f86b1b659448439c30d51682f8e8a721689f13
+  version: 0.0.3
+  resolution: "@metamask/multichain-api-client@file:../multichain-api-client#../multichain-api-client::hash=0d21d5&locator=%40metamask%2Fsolana-wallet-standard%40workspace%3A."
+  checksum: 10/4d7faebd0a51d87af67f5504d85133f629e35b19ba2547fbd2b9ff33cb442ff80018a0cc100913260231213c75bcdf2ab945df891ac63abb7e68f81e70348bef
   languageName: node
   linkType: hard
 

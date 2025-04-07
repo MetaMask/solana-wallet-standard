@@ -92,24 +92,24 @@ jobs:
         shell: bash
         run: ./scripts/get.sh ".version" "RELEASE_VERSION"
 
-  # publish-release-to-gh-pages:
-  #   name: Publish docs to `${{ needs.get-release-version.outputs.RELEASE_VERSION }}` directory of `gh-pages` branch
-  #   needs: get-release-version
-  #   permissions:
-  #     contents: write
-  #   uses: ./.github/workflows/publish-docs.yml
-  #   with:
-  #     destination_dir: ${{ needs.get-release-version.outputs.RELEASE_VERSION }}
-  #   secrets:
-  #     PUBLISH_DOCS_TOKEN: ${{ secrets.PUBLISH_DOCS_TOKEN }}
+  publish-release-to-gh-pages:
+    name: Publish docs to `${{ needs.get-release-version.outputs.RELEASE_VERSION }}` directory of `gh-pages` branch
+    needs: get-release-version
+    permissions:
+      contents: write
+    uses: ./.github/workflows/publish-docs.yml
+    with:
+      destination_dir: ${{ needs.get-release-version.outputs.RELEASE_VERSION }}
+    secrets:
+      PUBLISH_DOCS_TOKEN: ${{ secrets.PUBLISH_DOCS_TOKEN }}
 
-  # publish-release-to-latest-gh-pages:
-  #   name: Publish docs to `latest` directory of `gh-pages` branch
-  #   needs: publish-npm
-  #   permissions:
-  #     contents: write
-  #   uses: ./.github/workflows/publish-docs.yml
-  #   with:
-  #     destination_dir: latest
-  #   secrets:
-  #     PUBLISH_DOCS_TOKEN: ${{ secrets.PUBLISH_DOCS_TOKEN }}
+  publish-release-to-latest-gh-pages:
+    name: Publish docs to `latest` directory of `gh-pages` branch
+    needs: publish-npm
+    permissions:
+      contents: write
+    uses: ./.github/workflows/publish-docs.yml
+    with:
+      destination_dir: latest
+    secrets:
+      PUBLISH_DOCS_TOKEN: ${{ secrets.PUBLISH_DOCS_TOKEN }}

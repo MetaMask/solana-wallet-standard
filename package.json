@@ -1,7 +1,8 @@
 {
   "name": "@metamask/solana-wallet-standard",
   "version": "0.0.0",
-  "description": "The MetaMask Node module template",
+  "license": "ISC",
+  "description": "The MetaMask Solana wallet-standard implementation.",
   "homepage": "https://github.com/MetaMask/solana-wallet-standard#readme",
   "bugs": {
     "url": "https://github.com/MetaMask/solana-wallet-standard/issues"
@@ -22,49 +23,21 @@
         "default": "./dist/index.cjs"
       }
     },
-    "./dist/icon": {
-      "import": {
-        "types": "./dist/icon.d.mts",
-        "default": "./dist/icon.mjs"
-      },
-      "require": {
-        "types": "./dist/icon.d.cts",
-        "default": "./dist/icon.cjs"
-      }
-    },
-    "./dist/utils": {
-      "import": {
-        "types": "./dist/utils.d.mts",
-        "default": "./dist/utils.mjs"
-      },
-      "require": {
-        "types": "./dist/utils.d.cts",
-        "default": "./dist/utils.cjs"
-      }
-    },
-    "./dist/wallet": {
-      "import": {
-        "types": "./dist/wallet.d.mts",
-        "default": "./dist/wallet.mjs"
-      },
-      "require": {
-        "types": "./dist/wallet.d.cts",
-        "default": "./dist/wallet.cjs"
-      }
-    },
     "./package.json": "./package.json"
   },
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.cts",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "ts-bridge --project tsconfig.build.json --clean",
     "build:docs": "typedoc",
     "build:types": "tsc --project tsconfig.build.json",
     "format": "biome format",
     "format:fix": "biome format --write",
-    "lint": "yarn lint:biome && yarn lint:constraints && yarn lint:dependencies --check && yarn lint:changelog",
+    "lint": "yarn lint:biome && yarn format && yarn lint:constraints && yarn lint:dependencies --check && yarn lint:changelog",
     "lint:changelog": "auto-changelog validate --prettier",
     "lint:constraints": "yarn constraints",
     "lint:dependencies": "depcheck && yarn dedupe",

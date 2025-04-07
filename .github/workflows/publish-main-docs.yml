@@ -2,9 +2,7 @@ name: Publish main branch docs to GitHub Pages
 
 on:
   push:
-    # branches: main
-    branches-ignore:
-      - "*"
+    branches: main
 
 jobs:
   publish-to-gh-pages:
