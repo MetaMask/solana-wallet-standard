@@ -14,9 +14,9 @@ or
 
 ```typescript
 import { getMultichainClient, getDefaultTransport } from '@metamask/multichain-api-client';
-import { client } from '@metamask/solana-wallet-standard';
+import { registerSolanaWalletStandard } from '@metamask/solana-wallet-standard';
 
-const client = await getMultichainClient({ transport: getDefaultTransport() });
+const client = getMultichainClient({ transport: getDefaultTransport() });
 
 registerSolanaWalletStandard({ client });
 ```
