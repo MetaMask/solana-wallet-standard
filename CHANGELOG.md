@@ -7,4 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-[Unreleased]: https://github.com/MetaMask/solana-wallet-standard/
+## [0.1.0]
+
+### Changed
+
+- Initial release
+
+[Unreleased]: https://github.com/MetaMask/solana-wallet-standard/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/MetaMask/solana-wallet-standard/releases/tag/v0.1.0
