@@ -39,8 +39,7 @@ import {
 import { ReadonlyWalletAccount } from '@wallet-standard/wallet';
 import bs58 from 'bs58';
 import { metamaskIcon } from './icon';
-import type { CaipAccountId, DeepWriteable } from './types';
-import { getAddressFromCaipAccountId } from './utils';
+import type { DeepWriteable } from './types';
 
 export class MetamaskWalletAccount extends ReadonlyWalletAccount {
   constructor({ address, publicKey, chains }: { address: string; publicKey: Uint8Array; chains: IdentifierArray }) {
