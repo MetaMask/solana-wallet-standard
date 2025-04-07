@@ -11,7 +11,8 @@ export const CAIP_ACCOUNT_ID_REGEX =
  */
 export function getAddressFromCaipAccountId(caipAccountId: CaipAccountId) {
   const match = CAIP_ACCOUNT_ID_REGEX.exec(caipAccountId);
-  if (!match?.groups) {
+
+  if (!match?.groups?.accountAddress) {
     throw new Error('Invalid CAIP account ID.');
   }
 
