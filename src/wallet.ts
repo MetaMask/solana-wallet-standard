@@ -137,15 +137,19 @@ export class MetamaskWallet implements Wallet {
 
   #connect = async (): Promise<StandardConnectOutput> => {
     if (!this.accounts.length) {
-      const existingSession = await this.client.getSession();
-
-      this.client.onNotification((data: any) => {
+      // Setup accountsChanged listener. Returns promise that resolves when first accountsChanged event is received
+      const firstEventPromise = new Promise<void>((resolve) => {
+        const handleFirstEvent = (data: any) => {
         if (data?.params?.notification?.method === 'metamask_accountsChanged') {
           this.#handleAccountsChangedEvent(data);
+            resolve();
         }
+        };
+        this.client.onNotification(handleFirstEvent);
       });
 
-      // If there's no existing accounts for this session scope, create a new one
+      const existingSession = await this.client.getSession();
+
       const session: SessionData | undefined = existingSession?.sessionScopes[this.scope]?.accounts?.length
         ? existingSession
         : await this.client.createSession({
@@ -162,9 +166,23 @@ export class MetamaskWallet implements Wallet {
 
       const accounts = session?.sessionScopes[this.scope]?.accounts;
 
-      if (!accounts?.length || accounts?.[0] === undefined) {
-        throw new Error('No accounts found in MetaMask session');
+      // Fallback if first event doesn't arrive within a reasonable amount of time
+      await new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          console.warn('No accountsChanged event received, using first account from session');
+          if (accounts?.[0]) {
+            this.#account = this.#getAccountFromAddress(accounts[0].slice(this.scope.length + 1));
+            resolve();
+          } else {
+            reject(new Error('No accounts available to use from session'));
       }
+        }, 2000);
+
+        firstEventPromise.then(() => {
+          clearTimeout(timeout);
+          resolve();
+        });
+      });
     }
 
     return { accounts: this.accounts };
