@@ -59,7 +59,7 @@ export class MetamaskWalletAccount extends ReadonlyWalletAccount {
 export class MetamaskWallet implements Wallet {
   readonly #listeners: { [E in StandardEventsNames]?: StandardEventsListeners[E][] } = {};
   readonly version = '1.0.0' as const;
-  readonly name = 'MetaMask (Injected pkg)' as const;
+  readonly name = 'MetaMask' as const;
   readonly icon = metamaskIcon;
   readonly chains: SolanaChain[] = [SOLANA_MAINNET_CHAIN, SOLANA_DEVNET_CHAIN, SOLANA_TESTNET_CHAIN];
   readonly scope = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
