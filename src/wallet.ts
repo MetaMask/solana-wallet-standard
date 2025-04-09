@@ -140,10 +140,10 @@ export class MetamaskWallet implements Wallet {
       // Setup accountsChanged listener. Returns promise that resolves when first accountsChanged event is received
       const firstEventPromise = new Promise<void>((resolve) => {
         const handleFirstEvent = (data: any) => {
-        if (data?.params?.notification?.method === 'metamask_accountsChanged') {
-          this.#handleAccountsChangedEvent(data);
+          if (data?.params?.notification?.method === 'metamask_accountsChanged') {
+            this.#handleAccountsChangedEvent(data);
             resolve();
-        }
+          }
         };
         this.client.onNotification(handleFirstEvent);
       });
@@ -175,7 +175,7 @@ export class MetamaskWallet implements Wallet {
             resolve();
           } else {
             reject(new Error('No accounts available to use from session'));
-      }
+          }
         }, 2000);
 
         firstEventPromise.then(() => {
