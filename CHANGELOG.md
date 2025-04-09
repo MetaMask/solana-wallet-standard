@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.1]
 
-### Uncategorized
+### Fixed
 
 - Fix account selection on page load ([#15](https://github.com/MetaMask/solana-wallet-standard/pull/15))
 - Update connector name ([#14](https://github.com/MetaMask/solana-wallet-standard/pull/14))
