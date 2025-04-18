@@ -638,10 +638,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/multichain-api-client@npm:0.1.1":
-  version: 0.1.1
-  resolution: "@metamask/multichain-api-client@npm:0.1.1"
-  checksum: 10/85d8e7d20389460269ddd07388dcbfdbceb532df0e21d5184f810f90d4e8817318e717b0f6f716fce6ad7c457d54c476c1e7ac209cbb6b0757cbebd747917568
+"@metamask/multichain-api-client@npm:0.3.0":
+  version: 0.3.0
+  resolution: "@metamask/multichain-api-client@npm:0.3.0"
+  checksum: 10/3a82a36dbdad88f16464e7655d77a5562d636a387b93d69438421c1fd25f4767eb28ed4c423647b6b06fb0c85cf7dcbe7e4bca474cddd022c78652d631de23fe
   languageName: node
   linkType: hard
 
@@ -654,7 +654,7 @@ __metadata:
     "@lavamoat/allow-scripts": "npm:^3.0.4"
     "@lavamoat/preinstall-always-fail": "npm:^2.0.0"
     "@metamask/auto-changelog": "npm:^5.0.1"
-    "@metamask/multichain-api-client": "npm:0.1.1"
+    "@metamask/multichain-api-client": "npm:0.3.0"
     "@solana/wallet-standard-chains": "npm:^1.1.1"
     "@solana/wallet-standard-features": "npm:^1.3.0"
     "@ts-bridge/cli": "npm:^0.6.3"
