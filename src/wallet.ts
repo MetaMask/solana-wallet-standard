@@ -237,6 +237,7 @@ export class MetamaskWallet implements Wallet {
 
     // Update session if account isn't permissioned for this scope
     if (!sessionAccounts?.includes(`${scope}:${account.address}`)) {
+      // Create the session with only the devnet scope, to protect users from accidentally signing transactions on mainnet
       await this.#createSession(scope, [account.address]);
     }
 
@@ -375,17 +376,12 @@ export class MetamaskWallet implements Wallet {
       const sessionScopes = Object.keys(existingSession?.sessionScopes ?? {});
       const solanaSessionScopes = sessionScopes.filter((scope) => scopes.includes(scope as Scope));
 
-      // If mainnet exists, make sure it doesn't coexist with devnet or testnet
-      if (solanaSessionScopes.includes(Scope.MAINNET)) {
-        if (solanaSessionScopes.includes(Scope.DEVNET) || solanaSessionScopes.includes(Scope.TESTNET)) {
-          throw new Error('To use devnet or testnet, please switch to them explicitly');
-        }
-        this.#scope = Scope.MAINNET;
-      } else if (solanaSessionScopes.includes(Scope.DEVNET)) {
-        this.#scope = Scope.DEVNET;
-      } else if (solanaSessionScopes.includes(Scope.TESTNET)) {
-        this.#scope = Scope.TESTNET;
-      } else {
+      // Find the first available scope in priority order: testnet > devnet > mainnet to protect users from accidentally
+      // signing transactions on mainnet. When the page is reloaded, we don't know which scope was used last
+      const scopePriorityOrder = [Scope.TESTNET, Scope.DEVNET, Scope.MAINNET];
+      this.#scope = scopePriorityOrder.find((scope) => solanaSessionScopes.includes(scope));
+
+      if (!this.#scope) {
         return false;
       }
 
