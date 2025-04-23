@@ -1,10 +1,11 @@
 import { SOLANA_MAINNET_CHAIN } from '@solana/wallet-standard-chains';
 import bs58 from 'bs58';
 import { vi } from 'vitest';
+import { Scope } from '../src/types';
 
 export const mockAddress = 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
 export const mockPublicKey = bs58.decode(mockAddress);
-export const mockScope = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+export const mockScope = Scope.MAINNET;
 export const mockChain = SOLANA_MAINNET_CHAIN;
 
 // Create mock for MultichainApiClient
