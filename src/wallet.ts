@@ -424,7 +424,7 @@ export class MetamaskWallet implements Wallet {
     const res = await this.client.createSession({
       optionalScopes: {
         [scope]: {
-          accounts: addresses?.map((address) => `${scope}:${address}` as CaipAccountId),
+          ...(addresses ? { accounts: addresses.map((address) => `${scope}:${address}` as CaipAccountId) } : {}),
           methods: [],
           notifications: [],
         },
