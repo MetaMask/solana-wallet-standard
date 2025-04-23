@@ -73,30 +73,22 @@ export class MetamaskWallet implements Wallet {
 
   #getInitialSelectedAddress = async (): Promise<string | undefined> => {
     return new Promise((resolve) => {
-      let resolved = false;
       const timeout = setTimeout(() => {
-        if (!resolved) {
-          resolved = true;
-          resolve(undefined);
-        }
+        resolve(undefined);
       }, 2000);
 
       const handleAccountChange = (data: any) => {
-        if (resolved) {
-          return;
-        }
-
         if (data?.params?.notification?.method === 'metamask_accountsChanged') {
           const address = data?.params?.notification?.params?.[0];
           if (address) {
             clearTimeout(timeout);
-            resolved = true;
+            removeNotification?.();
             resolve(address);
           }
         }
       };
 
-      this.client.onNotification(handleAccountChange);
+      const removeNotification = this.client.onNotification(handleAccountChange);
     });
   };
 
