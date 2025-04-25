@@ -11,6 +11,7 @@ import bs58 from 'bs58';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   mockAddress as address,
+  mockAddress2 as address2,
   mockChain as chain,
   createMockClient,
   mockCreateSession,
@@ -45,7 +46,7 @@ describe('MetamaskWallet', () => {
   };
 
   const connectAndSetAccount = async (_address = address) => {
-    mockCreateSession(mockClient, _address);
+    mockCreateSession(mockClient, [_address]);
     setupNotificationHandler();
 
     const connectPromise = wallet.features[StandardConnect].connect();
@@ -58,7 +59,7 @@ describe('MetamaskWallet', () => {
 
   // Helper to connect wallet and set account
   const reconnectAndSetAccount = async (_address = address) => {
-    mockGetSession(mockClient, _address);
+    mockGetSession(mockClient, [_address]);
     setupNotificationHandler();
 
     const connectPromise = wallet.features[StandardConnect].connect();
@@ -128,7 +129,7 @@ describe('MetamaskWallet', () => {
     });
 
     it('should use fallback when no accountsChanged event is received', async () => {
-      mockGetSession(mockClient, address);
+      mockGetSession(mockClient, [address]);
 
       // Simulate no accountsChanged event (timeout will trigger)
       vi.useFakeTimers();
@@ -329,7 +330,7 @@ describe('MetamaskWallet', () => {
   describe('signIn', () => {
     it('should connect first if no account is set', async () => {
       // Setup mock session
-      mockCreateSession(mockClient, address);
+      mockCreateSession(mockClient, [address]);
 
       // Setup signIn response
       const signedMessage = 'base64EncodedSignedMessage';
@@ -489,6 +490,20 @@ describe('MetamaskWallet', () => {
       expect(wallet.accounts).toEqual([]);
       expect(mockClient.revokeSession).toHaveBeenCalled();
       expect(changeListener).toHaveBeenCalledWith({ accounts: [] });
+    });
+
+    it('should use address from getInitialSelectedAddress', async () => {
+      // Mocks
+      vi.spyOn(MetamaskWallet.prototype as any, 'getInitialSelectedAddress').mockResolvedValue(address2);
+      mockCreateSession(mockClient, [address, address2]);
+      mockGetSession(mockClient, [address, address2]);
+
+      // Create new wallet with mocked getInitialSelectedAddress
+      const walletWithInitialAddress = new MetamaskWallet({ client: mockClient });
+
+      // Connect and verify the address from getInitialSelectedAddress was used
+      const result = await walletWithInitialAddress.features[StandardConnect].connect();
+      expect(result.accounts[0]?.address).toBe(address2);
     });
   });
 });
