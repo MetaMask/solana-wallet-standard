@@ -37,3 +37,7 @@ export function getScopeFromWalletStandardChain(chainId: CaipChainIdStruct | und
     }
   }
 }
+
+export function isAccountChangedEvent(event: any) {
+  return event.params?.notification?.method === 'metamask_accountsChanged';
+}
