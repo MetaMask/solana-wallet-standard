@@ -60,7 +60,9 @@ export class MetamaskWalletAccount extends ReadonlyWalletAccount {
 export class MetamaskWallet implements Wallet {
   readonly #listeners: { [E in StandardEventsNames]?: StandardEventsListeners[E][] } = {};
   readonly version = '1.0.0' as const;
-  readonly name = 'MetaMask‎' as const;
+  // Using U+FEFF (zero-width no-break space) to avoid conflicts with Solflare connector using MetaMask Snap.
+  // This character ensures the name matches "MetaMask" when using trim()
+  readonly name = 'MetaMask\uFEFF' as const;
   readonly icon = metamaskIcon;
   readonly chains: SolanaChain[] = [SOLANA_MAINNET_CHAIN, SOLANA_DEVNET_CHAIN, SOLANA_TESTNET_CHAIN];
   #scope: Scope | undefined;
