@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.3.1]
 
-### Uncategorized
+### Fixed
 
-- Update connector name to include a character compatible with `trim()` ([#31](https://github.com/MetaMask/solana-wallet-standard/pull/31))
+- Update connector name to use a character compatible with `trim()` ([#31](https://github.com/MetaMask/solana-wallet-standard/pull/31))
 
 ## [0.3.0]
 
