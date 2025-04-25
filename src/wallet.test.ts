@@ -81,7 +81,7 @@ describe('MetamaskWallet', () => {
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
       expect(wallet.version).toBe('1.0.0');
-      expect(wallet.name).toBe('MetaMask‎');
+      expect(wallet.name).toBe('MetaMask\uFEFF');
       expect(wallet.icon).toBeDefined();
       expect(wallet.chains).toContain(SOLANA_MAINNET_CHAIN);
       expect(wallet.accounts).toEqual([]);
