@@ -70,8 +70,11 @@ describe('MetamaskWallet', () => {
   };
 
   beforeEach(() => {
+    vi.clearAllMocks();
     mockClient = createMockClient();
     wallet = new MetamaskWallet({ client: mockClient });
+    // Mock #getInitialSelectedAddress private method to resolve immediately with undefined
+    vi.spyOn(MetamaskWallet.prototype as any, 'getInitialSelectedAddress').mockResolvedValue(undefined);
   });
 
   describe('constructor', () => {
@@ -473,7 +476,7 @@ describe('MetamaskWallet', () => {
       wallet.features[StandardEvents].on('change', changeListener);
 
       // Simulate accountsChanged event with no address
-      notificationHandler({
+      await notificationHandler({
         params: {
           notification: {
             method: 'metamask_accountsChanged',

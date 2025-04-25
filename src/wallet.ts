@@ -74,7 +74,7 @@ export class MetamaskWallet implements Wallet {
    * Listen for up to 2 seconds to the accountsChanged event emitted on page load
    * @returns If any, the initial selected address
    */
-  #getInitialSelectedAddress = async (): Promise<string | undefined> => {
+  protected getInitialSelectedAddress(): Promise<string | undefined> {
     return new Promise((resolve) => {
       const timeout = setTimeout(() => {
         resolve(undefined);
@@ -93,7 +93,7 @@ export class MetamaskWallet implements Wallet {
 
       const removeNotification = this.client.onNotification(handleAccountChange);
     });
-  };
+  }
 
   get accounts() {
     return this.#account ? [this.#account] : [];
@@ -142,7 +142,7 @@ export class MetamaskWallet implements Wallet {
 
   constructor({ client }: { client: MultichainApiClient }) {
     this.client = client;
-    this.#selectedAddressOnPageLoadPromise = this.#getInitialSelectedAddress();
+    this.#selectedAddressOnPageLoadPromise = this.getInitialSelectedAddress();
   }
 
   #on: StandardEventsOnMethod = (event, listener) => {
@@ -349,6 +349,16 @@ export class MetamaskWallet implements Wallet {
 
     const session = await this.client.getSession();
     const addressToSelect = data?.params?.notification?.params?.[0];
+
+    // If no address is provided, disconnect
+    if (!addressToSelect) {
+      console.log('No address to select, disconnecting');
+
+      await this.#disconnect();
+      console.log('this.accounts', this.accounts);
+
+      return;
+    }
 
     this.#updateSession(session, addressToSelect);
   }
