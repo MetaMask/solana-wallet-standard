@@ -9,18 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.3.0]
 
-### Uncategorized
+### Changed
 
-- Revert "Merge pull request #26 from MetaMask/release/0.3.0" ([#29](https://github.com/MetaMask/solana-wallet-standard/pull/29))
-- Merge branch 'main' into release/0.3.0
-- Use optimized circle-cropped logo ([#28](https://github.com/MetaMask/solana-wallet-standard/pull/28))
-- Merge branch 'main' into release/0.3.0
-- doc: update changelog
-- chore: use small fox icon ([#27](https://github.com/MetaMask/solana-wallet-standard/pull/27))
-- 0.3.0
-- chore: use small fox icon
-- feat: update metamask logo ([#24](https://github.com/MetaMask/solana-wallet-standard/pull/24))
 - Refactor scope and account selection ([#23](https://github.com/MetaMask/solana-wallet-standard/pull/23))
+- Update metamask logo ([#27](https://github.com/MetaMask/solana-wallet-standard/pull/27))
 
 ## [0.2.0]
 
