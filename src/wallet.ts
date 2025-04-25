@@ -449,6 +449,10 @@ export class MetamaskWallet implements Wallet {
     try {
       const existingSession = await this.client.getSession();
 
+      if (!existingSession) {
+        return;
+      }
+
       // Get the account from accountChanged emitted on page load, if any
       const account = await this.#selectedAddressOnPageLoadPromise;
       this.#updateSession(existingSession, account);
