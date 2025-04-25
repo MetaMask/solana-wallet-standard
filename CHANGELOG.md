@@ -9,11 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.3.0]
 
-### Uncategorized
+### Changed
 
-- chore: use small fox icon
-- feat: update metamask logo ([#24](https://github.com/MetaMask/solana-wallet-standard/pull/24))
 - Refactor scope and account selection ([#23](https://github.com/MetaMask/solana-wallet-standard/pull/23))
+- Update metamask logo ([#27](https://github.com/MetaMask/solana-wallet-standard/pull/27))
 
 ## [0.2.0]
 
