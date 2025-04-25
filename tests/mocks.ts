@@ -4,7 +4,9 @@ import { vi } from 'vitest';
 import { Scope } from '../src/types';
 
 export const mockAddress = 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
+export const mockAddress2 = 'BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB';
 export const mockPublicKey = bs58.decode(mockAddress);
+export const mockPublicKey2 = bs58.decode(mockAddress2);
 export const mockScope = Scope.MAINNET;
 export const mockChain = SOLANA_MAINNET_CHAIN;
 
@@ -21,24 +23,24 @@ export const createMockClient = () => {
 };
 
 // Helper to setup a session with an account
-export const mockGetSession = (mockClient: ReturnType<typeof createMockClient>, address?: string) => {
+export const mockGetSession = (mockClient: ReturnType<typeof createMockClient>, addresses?: string[]) => {
   mockClient.getSession.mockResolvedValue({
-    sessionScopes: address
+    sessionScopes: addresses
       ? {
           [mockScope]: {
-            accounts: [`${mockScope}:${mockAddress}`],
+            accounts: addresses.map((address) => `${mockScope}:${address}`),
           },
         }
       : {},
   });
 };
 
-export const mockCreateSession = (mockClient: ReturnType<typeof createMockClient>, address?: string) => {
+export const mockCreateSession = (mockClient: ReturnType<typeof createMockClient>, addresses?: string[]) => {
   mockClient.createSession.mockResolvedValue({
-    sessionScopes: address
+    sessionScopes: addresses
       ? {
           [mockScope]: {
-            accounts: [`${mockScope}:${mockAddress}`],
+            accounts: addresses.map((address) => `${mockScope}:${address}`),
           },
         }
       : {},

@@ -1,4 +1,4 @@
-import type { MultichainApiClient } from '@metamask/multichain-api-client';
+import type { MultichainApiClient, SessionData } from '@metamask/multichain-api-client';
 import {
   SOLANA_DEVNET_CHAIN,
   SOLANA_MAINNET_CHAIN,
@@ -40,8 +40,7 @@ import { ReadonlyWalletAccount } from '@wallet-standard/wallet';
 import bs58 from 'bs58';
 import { metamaskIcon } from './icon';
 import { type CaipAccountId, type DeepWriteable, Scope } from './types';
-import { scopes } from './types';
-import { getAddressFromCaipAccountId, getScopeFromWalletStandardChain } from './utils';
+import { getAddressFromCaipAccountId, getScopeFromWalletStandardChain, isAccountChangedEvent } from './utils';
 
 export class MetamaskWalletAccount extends ReadonlyWalletAccount {
   constructor({ address, publicKey, chains }: { address: string; publicKey: Uint8Array; chains: IdentifierArray }) {
@@ -71,14 +70,18 @@ export class MetamaskWallet implements Wallet {
 
   client: MultichainApiClient;
 
-  #getInitialSelectedAddress = async (): Promise<string | undefined> => {
+  /**
+   * Listen for up to 2 seconds to the accountsChanged event emitted on page load
+   * @returns If any, the initial selected address
+   */
+  protected getInitialSelectedAddress(): Promise<string | undefined> {
     return new Promise((resolve) => {
       const timeout = setTimeout(() => {
         resolve(undefined);
       }, 2000);
 
       const handleAccountChange = (data: any) => {
-        if (data?.params?.notification?.method === 'metamask_accountsChanged') {
+        if (isAccountChangedEvent(data)) {
           const address = data?.params?.notification?.params?.[0];
           if (address) {
             clearTimeout(timeout);
@@ -90,7 +93,7 @@ export class MetamaskWallet implements Wallet {
 
       const removeNotification = this.client.onNotification(handleAccountChange);
     });
-  };
+  }
 
   get accounts() {
     return this.#account ? [this.#account] : [];
@@ -139,7 +142,7 @@ export class MetamaskWallet implements Wallet {
 
   constructor({ client }: { client: MultichainApiClient }) {
     this.client = client;
-    this.#selectedAddressOnPageLoadPromise = this.#getInitialSelectedAddress();
+    this.#selectedAddressOnPageLoadPromise = this.getInitialSelectedAddress();
   }
 
   #on: StandardEventsOnMethod = (event, listener) => {
@@ -168,11 +171,16 @@ export class MetamaskWallet implements Wallet {
     }
 
     // Try restoring session
-    const restored = await this.#tryRestoringSession();
+    await this.#tryRestoringSession();
 
     // Otherwise create a session on Mainnet by default
-    if (!restored) {
+    if (!this.accounts.length) {
       await this.#createSession(Scope.MAINNET);
+    }
+
+    // In case user didn't select any Solana scope/account, return
+    if (!this.accounts.length) {
+      return { accounts: [] };
     }
 
     this.#removeAccountsChangedListener = this.client.onNotification(this.#handleAccountsChangedEvent.bind(this));
@@ -215,6 +223,7 @@ export class MetamaskWallet implements Wallet {
 
   #disconnect = async () => {
     this.#account = undefined;
+    this.#scope = undefined;
     this.#removeAccountsChangedListener?.();
     this.#removeAccountsChangedListener = undefined;
     this.#emit('change', { accounts: this.accounts });
@@ -236,7 +245,9 @@ export class MetamaskWallet implements Wallet {
     const sessionAccounts = session?.sessionScopes[scope]?.accounts;
 
     // Update session if account isn't permissioned for this scope
-    if (!sessionAccounts?.includes(`${scope}:${account.address}`)) {
+    if (sessionAccounts?.includes(`${scope}:${account.address}`)) {
+      this.#scope = scope;
+    } else {
       // Create the session with only the devnet scope, to protect users from accidentally signing transactions on mainnet
       await this.#createSession(scope, [account.address]);
     }
@@ -327,18 +338,84 @@ export class MetamaskWallet implements Wallet {
     return results;
   };
 
-  #handleAccountsChangedEvent(data: any) {
-    if (data?.params?.notification?.method !== 'metamask_accountsChanged') {
+  /**
+   * Handles the accountsChanged event.
+   * @param data - The event data
+   */
+  async #handleAccountsChangedEvent(data: any) {
+    if (!isAccountChangedEvent(data)) {
       return;
     }
-    const address = data?.params?.notification?.params?.[0];
 
-    if (address) {
-      this.#account = this.#getAccountFromAddress(address);
-      this.#emit('change', { accounts: this.accounts });
-    } else {
-      this.#disconnect();
+    const session = await this.client.getSession();
+    const addressToSelect = data?.params?.notification?.params?.[0];
+
+    // If no address is provided, disconnect
+    if (!addressToSelect) {
+      console.log('No address to select, disconnecting');
+
+      await this.#disconnect();
+      console.log('this.accounts', this.accounts);
+
+      return;
     }
+
+    this.#updateSession(session, addressToSelect);
+  }
+
+  /**
+   * Updates the session and the account to connect to.
+   * This method handles the logic for selecting the appropriate Solana network scope (mainnet/devnet/testnet)
+   * and account to connect to based on the following priority:
+   * 1. First tries to find an available scope in order: mainnet > devnet > testnet, supposing the same set of accounts
+   *    is available for all Solana scopes
+   * 2. For account selection:
+   *    - First tries to use the selectedAddress param, most likely coming from the accountsChanged event
+   *    - Falls back to the previously saved account if it exists in the scope
+   *    - Finally defaults to the first account in the scope
+   *
+   * @param session - The session data containing available scopes and accounts
+   * @param selectedAddress - The address that was selected by the user, if any
+   */
+  #updateSession(session: SessionData | undefined, selectedAddress: string | undefined) {
+    // Get session scopes
+    const sessionScopes = new Set(Object.keys(session?.sessionScopes ?? {}));
+
+    // Find the first available scope in priority order: mainnet > devnet > testnet.
+    const scopePriorityOrder = [Scope.MAINNET, Scope.DEVNET, Scope.TESTNET];
+    const scope = scopePriorityOrder.find((scope) => sessionScopes.has(scope));
+
+    // If no scope is available, don't disconnect so that we can create a new session
+    if (!scope) {
+      this.#account = undefined;
+      return;
+    }
+    const scopeAccounts = session?.sessionScopes[scope]?.accounts;
+
+    // In case the Solana scope is available but without any accounts - Should never happen
+    if (!scopeAccounts?.[0]) {
+      this.#disconnect();
+      throw new Error('No accounts in scope');
+    }
+
+    let addressToConnect;
+    // Try to use selectedAddress
+    if (selectedAddress && scopeAccounts.includes(`${scope}:${selectedAddress}`)) {
+      addressToConnect = selectedAddress;
+    }
+    // Otherwise try to use the previously saved address in this.#account
+    else if (this.#account?.address && scopeAccounts.includes(`${scope}:${this.#account?.address}`)) {
+      addressToConnect = this.#account.address;
+    }
+    // Otherwise select first account
+    else {
+      addressToConnect = getAddressFromCaipAccountId(scopeAccounts[0]);
+    }
+
+    // Update the account and scope
+    this.#account = this.#getAccountFromAddress(addressToConnect);
+    this.#scope = scope;
+    this.#emit('change', { accounts: this.accounts });
   }
 
   #getAccountFromAddress(address: string) {
@@ -368,60 +445,44 @@ export class MetamaskWallet implements Wallet {
     }
   };
 
-  #tryRestoringSession = async (): Promise<boolean> => {
+  #tryRestoringSession = async (): Promise<void> => {
     try {
       const existingSession = await this.client.getSession();
 
-      // Get solana scopes
-      const sessionScopes = Object.keys(existingSession?.sessionScopes ?? {});
-      const solanaSessionScopes = sessionScopes.filter((scope) => scopes.includes(scope as Scope));
-
-      // Find the first available scope in priority order: testnet > devnet > mainnet to protect users from accidentally
-      // signing transactions on mainnet. When the page is reloaded, we don't know which scope was used last
-      const scopePriorityOrder = [Scope.TESTNET, Scope.DEVNET, Scope.MAINNET];
-      this.#scope = scopePriorityOrder.find((scope) => solanaSessionScopes.includes(scope));
-
-      if (!this.#scope) {
-        return false;
+      if (!existingSession) {
+        return;
       }
 
-      // Get the account from accountChanged from page load, or default to the first account in the session
-      const account =
-        (await this.#selectedAddressOnPageLoadPromise) ??
-        getAddressFromCaipAccountId(existingSession?.sessionScopes[this.#scope]?.accounts?.[0]!);
-
-      if (!account) {
-        return false;
-      }
-
-      this.#account = this.#getAccountFromAddress(account);
-      this.#emit('change', { accounts: this.accounts });
-      return true;
+      // Get the account from accountChanged emitted on page load, if any
+      const account = await this.#selectedAddressOnPageLoadPromise;
+      this.#updateSession(existingSession, account);
     } catch (error) {
       console.warn('Error restoring session', error);
-      return false;
     }
   };
 
   #createSession = async (scope: Scope, addresses?: string[]): Promise<void> => {
-    let resolvePromise: (value?: void | PromiseLike<void>) => void;
-    const waitForAccountChangedPromise = new Promise<void>((resolve) => {
+    let resolvePromise: (value: string) => void;
+    const waitForAccountChangedPromise = new Promise<string>((resolve) => {
       resolvePromise = resolve;
     });
 
     // If there are multiple accounts, wait for the first accountChanged event to know which one to use
     const handleAccountChange = (data: any) => {
-      const address = data?.params?.notification?.params?.[0];
-      if (address) {
-        this.#account = this.#getAccountFromAddress(address);
+      if (!isAccountChangedEvent(data)) {
+        return;
+      }
+      const selectedAddress = data?.params?.notification?.params?.[0];
+
+      if (selectedAddress) {
         removeNotification();
-        resolvePromise?.();
+        resolvePromise(selectedAddress);
       }
     };
 
     const removeNotification = this.client.onNotification(handleAccountChange);
 
-    const res = await this.client.createSession({
+    const session = await this.client.createSession({
       optionalScopes: {
         [scope]: {
           ...(addresses ? { accounts: addresses.map((address) => `${scope}:${address}` as CaipAccountId) } : {}),
@@ -434,21 +495,12 @@ export class MetamaskWallet implements Wallet {
       },
     });
 
-    const sessionAccounts = res?.sessionScopes?.[scope]?.accounts;
-    if (!sessionAccounts?.length) {
-      throw new Error(`Requested scope ${scope} is not available`);
-    }
+    // Wait for the accountChanged event to know which one to use, timeout after 200ms
+    const selectedAddress = await Promise.race([
+      waitForAccountChangedPromise,
+      new Promise<undefined>((resolve) => setTimeout(() => resolve(undefined), 200)),
+    ]);
 
-    // If there is only one account, use it
-    if (sessionAccounts.length === 1 && sessionAccounts[0]) {
-      this.#account = this.#getAccountFromAddress(getAddressFromCaipAccountId(sessionAccounts[0]));
-      this.#scope = scope;
-      this.#emit('change', { accounts: this.accounts });
-      return;
-    }
-
-    // Wait for the accountChanged event to know which one to use
-    // It can vary from 0 to 50ms depending on the case
-    await waitForAccountChangedPromise;
+    this.#updateSession(session, selectedAddress);
   };
 }
