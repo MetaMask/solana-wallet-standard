@@ -7,13 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.3.0]
-
-### Changed
-
-- Refactor scope and account selection ([#23](https://github.com/MetaMask/solana-wallet-standard/pull/23))
-- Update metamask logo ([#27](https://github.com/MetaMask/solana-wallet-standard/pull/27))
-
 ## [0.2.0]
 
 ### Changed
@@ -33,8 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release
 
-[Unreleased]: https://github.com/MetaMask/solana-wallet-standard/compare/v0.3.0...HEAD
-[0.3.0]: https://github.com/MetaMask/solana-wallet-standard/compare/v0.2.0...v0.3.0
+[Unreleased]: https://github.com/MetaMask/solana-wallet-standard/compare/v0.2.0...HEAD
 [0.2.0]: https://github.com/MetaMask/solana-wallet-standard/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/MetaMask/solana-wallet-standard/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/MetaMask/solana-wallet-standard/releases/tag/v0.1.0
