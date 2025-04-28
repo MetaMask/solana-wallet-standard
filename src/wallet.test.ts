@@ -73,7 +73,7 @@ describe('MetamaskWallet', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockClient = createMockClient();
-    wallet = new MetamaskWallet({ client: mockClient });
+    wallet = new MetamaskWallet({ client: mockClient, walletName: 'MetaMask Test' });
     // Mock #getInitialSelectedAddress private method to resolve immediately with undefined
     vi.spyOn(MetamaskWallet.prototype as any, 'getInitialSelectedAddress').mockResolvedValue(undefined);
   });
@@ -81,10 +81,15 @@ describe('MetamaskWallet', () => {
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
       expect(wallet.version).toBe('1.0.0');
-      expect(wallet.name).toBe('MetaMask\uFEFF');
+      expect(wallet.name).toBe('MetaMask Test\uFEFF');
       expect(wallet.icon).toBeDefined();
       expect(wallet.chains).toContain(SOLANA_MAINNET_CHAIN);
       expect(wallet.accounts).toEqual([]);
+    });
+
+    it('should initialize with default properties', () => {
+      wallet = new MetamaskWallet({ client: mockClient });
+      expect(wallet.name).toBe('MetaMask\uFEFF');
     });
 
     it('should have all required features', () => {
