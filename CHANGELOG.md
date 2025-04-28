@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- feat: Inject MetaMask wallet name for prod and flask release ([#35](https://github.com/MetaMask/solana-wallet-standard/pull/35))
+- fix: export missing options on `registerSolanaWalletStandard` helper ([#35](https://github.com/MetaMask/solana-wallet-standard/pull/35))
 
 ## [0.4.0]
 
