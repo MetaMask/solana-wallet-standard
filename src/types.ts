@@ -1,3 +1,5 @@
+import type { MultichainApiClient } from '@metamask/multichain-api-client';
+
 export type CaipChainIdStruct = `${string}:${string}`;
 export type CaipAccountId = `${string}:${string}:${string}`;
 
@@ -10,3 +12,8 @@ export enum Scope {
 }
 
 export const scopes = Object.values(Scope);
+
+export type WalletOptions = {
+  client: MultichainApiClient;
+  walletName?: string;
+};

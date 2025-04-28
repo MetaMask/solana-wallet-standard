@@ -39,7 +39,7 @@ import {
 import { ReadonlyWalletAccount } from '@wallet-standard/wallet';
 import bs58 from 'bs58';
 import { metamaskIcon } from './icon';
-import { type CaipAccountId, type DeepWriteable, Scope } from './types';
+import { type CaipAccountId, type DeepWriteable, Scope, type WalletOptions } from './types';
 import { getAddressFromCaipAccountId, getScopeFromWalletStandardChain, isAccountChangedEvent } from './utils';
 
 export class MetamaskWalletAccount extends ReadonlyWalletAccount {
@@ -140,7 +140,7 @@ export class MetamaskWallet implements Wallet {
     };
   }
 
-  constructor({ client, walletName }: { client: MultichainApiClient; walletName?: string }) {
+  constructor({ client, walletName }: WalletOptions) {
     this.client = client;
     // Using U+FEFF (zero-width no-break space) to avoid conflicts with Solflare connector using MetaMask Snap.
     // This character ensures the name matches "MetaMask" when using trim()

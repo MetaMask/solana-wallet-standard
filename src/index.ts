@@ -1,13 +1,13 @@
-import type { MultichainApiClient } from '@metamask/multichain-api-client';
 import { registerWallet } from '@wallet-standard/wallet';
+import type { WalletOptions } from './types';
 import { MetamaskWallet } from './wallet';
 
-export function getWalletStandard({ client }: { client: MultichainApiClient }) {
-  return new MetamaskWallet({ client });
+export function getWalletStandard(options: WalletOptions) {
+  return new MetamaskWallet(options);
 }
 
-export async function registerSolanaWalletStandard({ client }: { client: MultichainApiClient }) {
-  const wallet = getWalletStandard({ client });
+export async function registerSolanaWalletStandard(options: WalletOptions) {
+  const wallet = getWalletStandard(options);
 
   registerWallet(wallet);
 }
