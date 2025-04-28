@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.4.0]
 
-### Uncategorized
+### Changed
 
 - feat: Inject MetaMask wallet name for prod and flask release ([#33](https://github.com/MetaMask/solana-wallet-standard/pull/33))
 
