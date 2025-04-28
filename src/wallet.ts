@@ -60,9 +60,7 @@ export class MetamaskWalletAccount extends ReadonlyWalletAccount {
 export class MetamaskWallet implements Wallet {
   readonly #listeners: { [E in StandardEventsNames]?: StandardEventsListeners[E][] } = {};
   readonly version = '1.0.0' as const;
-  // Using U+FEFF (zero-width no-break space) to avoid conflicts with Solflare connector using MetaMask Snap.
-  // This character ensures the name matches "MetaMask" when using trim()
-  readonly name = 'MetaMask\uFEFF' as const;
+  readonly name;
   readonly icon = metamaskIcon;
   readonly chains: SolanaChain[] = [SOLANA_MAINNET_CHAIN, SOLANA_DEVNET_CHAIN, SOLANA_TESTNET_CHAIN];
   #scope: Scope | undefined;
@@ -142,8 +140,11 @@ export class MetamaskWallet implements Wallet {
     };
   }
 
-  constructor({ client }: { client: MultichainApiClient }) {
+  constructor({ client, walletName }: { client: MultichainApiClient; walletName?: string }) {
     this.client = client;
+    // Using U+FEFF (zero-width no-break space) to avoid conflicts with Solflare connector using MetaMask Snap.
+    // This character ensures the name matches "MetaMask" when using trim()
+    this.name = `${walletName ?? 'MetaMask'}\uFEFF` as const;
     this.#selectedAddressOnPageLoadPromise = this.getInitialSelectedAddress();
   }
 
