@@ -388,17 +388,19 @@ export class MetamaskWallet implements Wallet {
     const scopePriorityOrder = [Scope.MAINNET, Scope.DEVNET, Scope.TESTNET];
     const scope = scopePriorityOrder.find((scope) => sessionScopes.has(scope));
 
-    // If no scope is available, don't disconnect so that we can create a new session
+    // If no scope is available, don't disconnect so that we can create/update a new session
     if (!scope) {
       this.#account = undefined;
       return;
     }
     const scopeAccounts = session?.sessionScopes[scope]?.accounts;
 
-    // In case the Solana scope is available but without any accounts - Should never happen
+    // In case the Solana scope is available but without any accounts
+    // Could happen if the user already created a session using ethereum injected provider for example or the SDK
+    // Don't disconnect so that we can create/update a new session
     if (!scopeAccounts?.[0]) {
-      this.#disconnect();
-      throw new Error('No accounts in scope');
+      this.#account = undefined;
+      return;
     }
 
     let addressToConnect;
