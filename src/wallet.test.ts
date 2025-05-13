@@ -1,3 +1,4 @@
+import type { SessionData } from '@metamask/multichain-api-client';
 import { SOLANA_MAINNET_CHAIN } from '@solana/wallet-standard-chains';
 import {
   SolanaSignAndSendTransaction,
@@ -19,6 +20,7 @@ import {
   mockPublicKey as publicKey,
   mockScope as scope,
 } from '../tests/mocks';
+import { Scope } from './types';
 import { MetamaskWallet, MetamaskWalletAccount } from './wallet';
 
 describe('MetamaskWallet', () => {
@@ -509,6 +511,90 @@ describe('MetamaskWallet', () => {
       // Connect and verify the address from getInitialSelectedAddress was used
       const result = await walletWithInitialAddress.features[StandardConnect].connect();
       expect(result.accounts[0]?.address).toBe(address2);
+    });
+  });
+
+  describe('#updateSession', () => {
+    let session: SessionData;
+
+    beforeEach(() => {
+      session = {
+        sessionScopes: {
+          [Scope.MAINNET]: {
+            accounts: [`${Scope.MAINNET}:${address}`],
+          },
+          [Scope.DEVNET]: {
+            accounts: [`${Scope.DEVNET}:${address}`],
+          },
+        },
+      };
+    });
+
+    it('should update account and scope to the first available scope in priority order', () => {
+      wallet.updateSession(session, undefined);
+
+      expect(wallet.accounts[0]?.address).toBe(address);
+      expect(wallet.scope).toBe(Scope.MAINNET);
+    });
+
+    it('should use the selectedAddress if provided and valid', () => {
+      wallet.updateSession(session, address);
+
+      expect(wallet.accounts[0]?.address).toBe(address);
+      expect(wallet.scope).toBe(Scope.MAINNET);
+    });
+
+    it("should default to the first account in the scope if selectedAddress doesn't exists", () => {
+      wallet.updateSession(session, address2);
+
+      expect(wallet.accounts[0]?.address).toBe(address);
+      expect(wallet.scope).toBe(Scope.MAINNET);
+    });
+
+    it('should fall back to the previously saved account if selectedAddress is not provided', () => {
+      wallet.updateSession(session, undefined);
+
+      const previousAccount = wallet.accounts[0];
+      wallet.updateSession(session, undefined);
+
+      expect(wallet.accounts[0]).toEqual(previousAccount);
+    });
+
+    it('should default to the first account in the scope if no selectedAddress or previous account exists', () => {
+      wallet.updateSession(session, undefined);
+
+      expect(wallet.accounts[0]?.address).toBe(address);
+      expect(wallet.scope).toBe(Scope.MAINNET);
+    });
+
+    it('should set account to undefined if no scopes are available', () => {
+      wallet.updateSession({ sessionScopes: {} }, undefined);
+
+      expect(wallet.accounts).toEqual([]);
+      expect(wallet.scope).toBeUndefined();
+    });
+
+    it('should set account to undefined if the scope has no accounts', () => {
+      wallet.updateSession(
+        {
+          sessionScopes: {
+            [Scope.MAINNET]: { accounts: [] },
+          },
+        },
+        undefined,
+      );
+
+      expect(wallet.accounts).toEqual([]);
+      expect(wallet.scope).toBeUndefined();
+    });
+
+    it('should emit a "change" event when the account is updated', () => {
+      const changeListener = vi.fn();
+      wallet.features[StandardEvents].on('change', changeListener);
+
+      wallet.updateSession(session, address);
+
+      expect(changeListener).toHaveBeenCalledWith({ accounts: wallet.accounts });
     });
   });
 });

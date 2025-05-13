@@ -63,7 +63,7 @@ export class MetamaskWallet implements Wallet {
   readonly name;
   readonly icon = metamaskIcon;
   readonly chains: SolanaChain[] = [SOLANA_MAINNET_CHAIN, SOLANA_DEVNET_CHAIN, SOLANA_TESTNET_CHAIN];
-  #scope: Scope | undefined;
+  scope: Scope | undefined;
   #selectedAddressOnPageLoadPromise: Promise<string | undefined> | undefined;
   #account: MetamaskWalletAccount | undefined;
   #removeAccountsChangedListener: (() => void) | undefined;
@@ -191,10 +191,10 @@ export class MetamaskWallet implements Wallet {
   };
 
   #signIn = async (...inputs: SolanaSignInInput[]): Promise<SolanaSignInOutput[]> => {
-    if (!this.#account || !this.#scope) {
+    if (!this.#account || !this.scope) {
       await this.#connect();
 
-      if (!this.#account || !this.#scope) {
+      if (!this.#account || !this.scope) {
         throw new Error('Not connected');
       }
     }
@@ -203,7 +203,7 @@ export class MetamaskWallet implements Wallet {
 
     for (const input of inputs) {
       const signInRes = await this.client.invokeMethod({
-        scope: this.#scope,
+        scope: this.scope,
         request: {
           method: 'signIn',
           params: {
@@ -226,7 +226,7 @@ export class MetamaskWallet implements Wallet {
 
   #disconnect = async () => {
     this.#account = undefined;
-    this.#scope = undefined;
+    this.scope = undefined;
     this.#removeAccountsChangedListener?.();
     this.#removeAccountsChangedListener = undefined;
     this.#emit('change', { accounts: this.accounts });
@@ -249,7 +249,7 @@ export class MetamaskWallet implements Wallet {
 
     // Update session if account isn't permissioned for this scope
     if (sessionAccounts?.includes(`${scope}:${account.address}`)) {
-      this.#scope = scope;
+      this.scope = scope;
     } else {
       // Create the session with only the devnet scope, to protect users from accidentally signing transactions on mainnet
       await this.#createSession(scope, [account.address]);
@@ -281,7 +281,7 @@ export class MetamaskWallet implements Wallet {
   };
 
   #signTransaction = async (...inputs: SolanaSignTransactionInput[]): Promise<SolanaSignTransactionOutput[]> => {
-    if (!this.#scope) {
+    if (!this.scope) {
       throw new Error('Not connected');
     }
 
@@ -291,13 +291,13 @@ export class MetamaskWallet implements Wallet {
       const transaction = Buffer.from(transactionBuffer).toString('base64');
 
       const signTransactionRes = await this.client.invokeMethod({
-        scope: this.#scope,
+        scope: this.scope,
         request: {
           method: 'signTransaction',
           params: {
             account: { address: account.address },
             transaction,
-            scope: this.#scope,
+            scope: this.scope,
           },
         },
       });
@@ -311,7 +311,7 @@ export class MetamaskWallet implements Wallet {
   };
 
   #signMessage = async (...inputs: SolanaSignMessageInput[]): Promise<SolanaSignMessageOutput[]> => {
-    if (!this.#scope) {
+    if (!this.scope) {
       throw new Error('Not connected');
     }
 
@@ -321,7 +321,7 @@ export class MetamaskWallet implements Wallet {
       const message = Buffer.from(messageBuffer).toString('base64');
 
       const signMessageRes = await this.client.invokeMethod({
-        scope: this.#scope,
+        scope: this.scope,
         request: {
           method: 'signMessage',
           params: {
@@ -363,7 +363,7 @@ export class MetamaskWallet implements Wallet {
       return;
     }
 
-    this.#updateSession(session, addressToSelect);
+    this.updateSession(session, addressToSelect);
   }
 
   /**
@@ -380,7 +380,7 @@ export class MetamaskWallet implements Wallet {
    * @param session - The session data containing available scopes and accounts
    * @param selectedAddress - The address that was selected by the user, if any
    */
-  #updateSession(session: SessionData | undefined, selectedAddress: string | undefined) {
+  updateSession(session: SessionData | undefined, selectedAddress: string | undefined) {
     // Get session scopes
     const sessionScopes = new Set(Object.keys(session?.sessionScopes ?? {}));
 
@@ -419,7 +419,7 @@ export class MetamaskWallet implements Wallet {
 
     // Update the account and scope
     this.#account = this.#getAccountFromAddress(addressToConnect);
-    this.#scope = scope;
+    this.scope = scope;
     this.#emit('change', { accounts: this.accounts });
   }
 
@@ -460,7 +460,7 @@ export class MetamaskWallet implements Wallet {
 
       // Get the account from accountChanged emitted on page load, if any
       const account = await this.#selectedAddressOnPageLoadPromise;
-      this.#updateSession(existingSession, account);
+      this.updateSession(existingSession, account);
     } catch (error) {
       console.warn('Error restoring session', error);
     }
@@ -506,6 +506,6 @@ export class MetamaskWallet implements Wallet {
       new Promise<undefined>((resolve) => setTimeout(() => resolve(undefined), 200)),
     ]);
 
-    this.#updateSession(session, selectedAddress);
+    this.updateSession(session, selectedAddress);
   };
 }
