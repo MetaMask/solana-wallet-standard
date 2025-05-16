@@ -531,51 +531,51 @@ describe('MetamaskWallet', () => {
     });
 
     it('should update account and scope to the first available scope in priority order', () => {
-      wallet.updateSession(session, undefined);
+      (wallet as any).updateSession(session, undefined);
 
       expect(wallet.accounts[0]?.address).toBe(address);
-      expect(wallet.scope).toBe(Scope.MAINNET);
+      expect((wallet as any).scope).toBe(Scope.MAINNET);
     });
 
     it('should use the selectedAddress if provided and valid', () => {
-      wallet.updateSession(session, address);
+      (wallet as any).updateSession(session, address);
 
       expect(wallet.accounts[0]?.address).toBe(address);
-      expect(wallet.scope).toBe(Scope.MAINNET);
+      expect((wallet as any).scope).toBe(Scope.MAINNET);
     });
 
     it("should default to the first account in the scope if selectedAddress doesn't exists", () => {
-      wallet.updateSession(session, address2);
+      (wallet as any).updateSession(session, address2);
 
       expect(wallet.accounts[0]?.address).toBe(address);
-      expect(wallet.scope).toBe(Scope.MAINNET);
+      expect((wallet as any).scope).toBe(Scope.MAINNET);
     });
 
     it('should fall back to the previously saved account if selectedAddress is not provided', () => {
-      wallet.updateSession(session, undefined);
+      (wallet as any).updateSession(session, undefined);
 
       const previousAccount = wallet.accounts[0];
-      wallet.updateSession(session, undefined);
+      (wallet as any).updateSession(session, undefined);
 
       expect(wallet.accounts[0]).toEqual(previousAccount);
     });
 
     it('should default to the first account in the scope if no selectedAddress or previous account exists', () => {
-      wallet.updateSession(session, undefined);
+      (wallet as any).updateSession(session, undefined);
 
       expect(wallet.accounts[0]?.address).toBe(address);
-      expect(wallet.scope).toBe(Scope.MAINNET);
+      expect((wallet as any).scope).toBe(Scope.MAINNET);
     });
 
     it('should set account to undefined if no scopes are available', () => {
-      wallet.updateSession({ sessionScopes: {} }, undefined);
+      (wallet as any).updateSession({ sessionScopes: {} }, undefined);
 
       expect(wallet.accounts).toEqual([]);
-      expect(wallet.scope).toBeUndefined();
+      expect((wallet as any).scope).toBeUndefined();
     });
 
     it('should set account to undefined if the scope has no accounts', () => {
-      wallet.updateSession(
+      (wallet as any).updateSession(
         {
           sessionScopes: {
             [Scope.MAINNET]: { accounts: [] },
@@ -585,14 +585,14 @@ describe('MetamaskWallet', () => {
       );
 
       expect(wallet.accounts).toEqual([]);
-      expect(wallet.scope).toBeUndefined();
+      expect((wallet as any).scope).toBeUndefined();
     });
 
     it('should emit a "change" event when the account is updated', () => {
       const changeListener = vi.fn();
       wallet.features[StandardEvents].on('change', changeListener);
 
-      wallet.updateSession(session, address);
+      (wallet as any).updateSession(session, address);
 
       expect(changeListener).toHaveBeenCalledWith({ accounts: wallet.accounts });
     });

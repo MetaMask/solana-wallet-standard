@@ -63,7 +63,7 @@ export class MetamaskWallet implements Wallet {
   readonly name;
   readonly icon = metamaskIcon;
   readonly chains: SolanaChain[] = [SOLANA_MAINNET_CHAIN, SOLANA_DEVNET_CHAIN, SOLANA_TESTNET_CHAIN];
-  scope: Scope | undefined;
+  protected scope: Scope | undefined;
   #selectedAddressOnPageLoadPromise: Promise<string | undefined> | undefined;
   #account: MetamaskWalletAccount | undefined;
   #removeAccountsChangedListener: (() => void) | undefined;
@@ -380,7 +380,7 @@ export class MetamaskWallet implements Wallet {
    * @param session - The session data containing available scopes and accounts
    * @param selectedAddress - The address that was selected by the user, if any
    */
-  updateSession(session: SessionData | undefined, selectedAddress: string | undefined) {
+  protected updateSession(session: SessionData | undefined, selectedAddress: string | undefined) {
     // Get session scopes
     const sessionScopes = new Set(Object.keys(session?.sessionScopes ?? {}));
 
