@@ -61,7 +61,7 @@
     "@lavamoat/allow-scripts": "^3.0.4",
     "@lavamoat/preinstall-always-fail": "^2.0.0",
     "@metamask/auto-changelog": "^5.0.1",
-    "@metamask/multichain-api-client": "^0.5.0",
+    "@metamask/multichain-api-client": "^0.6.1",
     "@ts-bridge/cli": "^0.6.3",
     "@types/node": "^22.13.13",
     "@vitest/coverage-istanbul": "^3.0.7",
