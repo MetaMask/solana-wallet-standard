@@ -40,7 +40,12 @@ import { ReadonlyWalletAccount } from '@wallet-standard/wallet';
 import bs58 from 'bs58';
 import { metamaskIcon } from './icon';
 import { type CaipAccountId, type DeepWriteable, Scope, type WalletOptions } from './types';
-import { getAddressFromCaipAccountId, getScopeFromWalletStandardChain, isAccountChangedEvent } from './utils';
+import {
+  getAddressFromCaipAccountId,
+  getNonSolanaSessionScopes,
+  getScopeFromWalletStandardChain,
+  isAccountChangedEvent,
+} from './utils';
 
 export class MetamaskWalletAccount extends ReadonlyWalletAccount {
   constructor({ address, publicKey, chains }: { address: string; publicKey: Uint8Array; chains: IdentifierArray }) {
@@ -352,11 +357,7 @@ export class MetamaskWallet implements Wallet {
 
     // If no address is provided, disconnect
     if (!addressToSelect) {
-      console.log('No address to select, disconnecting');
-
       await this.#disconnect();
-      console.log('this.accounts', this.accounts);
-
       return;
     }
 
@@ -485,8 +486,12 @@ export class MetamaskWallet implements Wallet {
 
     const removeNotification = this.client.onNotification(handleAccountChange);
 
+    // Get non-solana scopes to preserve them when creating new session. Relevant on Multichain dApps only.
+    const nonSolanaSessionScopes = getNonSolanaSessionScopes(await this.client.getSession());
+
     const session = await this.client.createSession({
       optionalScopes: {
+        ...nonSolanaSessionScopes,
         [scope]: {
           ...(addresses ? { accounts: addresses.map((address) => `${scope}:${address}` as CaipAccountId) } : {}),
           methods: [],

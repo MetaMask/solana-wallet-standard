@@ -1,3 +1,4 @@
+import type { SessionData } from '@metamask/multichain-api-client';
 import { SOLANA_DEVNET_CHAIN, SOLANA_MAINNET_CHAIN, SOLANA_TESTNET_CHAIN } from '@solana/wallet-standard-chains';
 import { type CaipAccountId, type CaipChainIdStruct, Scope, scopes } from './types';
 
@@ -36,6 +37,22 @@ export function getScopeFromWalletStandardChain(chainId: CaipChainIdStruct | und
       throw new Error(`Unsupported chainId: ${chainId}`);
     }
   }
+}
+
+/**
+ * Get the non-Solana session scopes from a session.
+ *
+ * @param session - The existing session.
+ * @returns The non-Solana session scopes.
+ */
+export function getNonSolanaSessionScopes(session: SessionData | undefined) {
+  const nonSolanaSessionScopes: Record<string, any> = {};
+  for (const [scope, scopeData] of Object.entries(session?.sessionScopes ?? {})) {
+    if (!scope.startsWith('solana:')) {
+      nonSolanaSessionScopes[scope] = scopeData;
+    }
+  }
+  return nonSolanaSessionScopes;
 }
 
 export function isAccountChangedEvent(event: any) {
