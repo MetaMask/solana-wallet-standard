@@ -83,7 +83,7 @@ describe('MetamaskWallet', () => {
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
       expect(wallet.version).toBe('1.0.0');
-      expect(wallet.name).toBe('MetaMask Test\uFEFF');
+      expect(wallet.name).toBe('MetaMask Test');
       expect(wallet.icon).toBeDefined();
       expect(wallet.chains).toContain(SOLANA_MAINNET_CHAIN);
       expect(wallet.accounts).toEqual([]);
@@ -91,7 +91,7 @@ describe('MetamaskWallet', () => {
 
     it('should initialize with default properties', () => {
       wallet = new MetamaskWallet({ client: mockClient });
-      expect(wallet.name).toBe('MetaMask\uFEFF');
+      expect(wallet.name).toBe('MetaMask');
     });
 
     it('should have all required features', () => {
@@ -152,6 +152,30 @@ describe('MetamaskWallet', () => {
       expect(mockClient.getSession).toHaveBeenCalled();
       expect(result.accounts.length).toBe(1);
       expect(result.accounts[0]?.address).toBe(address);
+    });
+
+    it('should preserve non-solana scopes when creating new session', async () => {
+      mockGetSession(mockClient, [], true);
+
+      await connectAndSetAccount();
+
+      expect(mockClient.getSession).toHaveBeenCalled();
+      expect(mockClient.createSession).toHaveBeenCalledWith({
+        optionalScopes: {
+          [scope]: {
+            methods: [],
+            notifications: [],
+          },
+          'eip155:1': {
+            accounts: ['eip155:1:0x0000000000000000000000000000000000000000'],
+            methods: [],
+            notifications: [],
+          },
+        },
+        sessionProperties: {
+          solana_accountChanged_notifications: true,
+        },
+      });
     });
   });
 
