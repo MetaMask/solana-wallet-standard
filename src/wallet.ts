@@ -142,9 +142,7 @@ export class MetamaskWallet implements Wallet {
 
   constructor({ client, walletName }: WalletOptions) {
     this.client = client;
-    // Using U+FEFF (zero-width no-break space) to avoid conflicts with Solflare connector using MetaMask Snap.
-    // This character ensures the name matches "MetaMask" when using trim()
-    this.name = `${walletName ?? 'MetaMask'}\uFEFF` as const;
+    this.name = `${walletName ?? 'MetaMask'}` as const;
     this.#selectedAddressOnPageLoadPromise = this.getInitialSelectedAddress();
   }
 
@@ -350,7 +348,6 @@ export class MetamaskWallet implements Wallet {
       return;
     }
 
-    const session = await this.client.getSession();
     const addressToSelect = data?.params?.notification?.params?.[0];
 
     // If no address is provided, disconnect
@@ -363,6 +360,7 @@ export class MetamaskWallet implements Wallet {
       return;
     }
 
+    const session = await this.client.getSession();
     this.updateSession(session, addressToSelect);
   }
 
