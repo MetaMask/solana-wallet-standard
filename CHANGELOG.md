@@ -9,12 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.5.0]
 
-### Uncategorized
+### Changed
 
 - feat: remove extra character in connector name ([#42](https://github.com/MetaMask/solana-wallet-standard/pull/42))
-- chore(deps-dev): bump vite in the npm_and_yarn group across 1 directory ([#37](https://github.com/MetaMask/solana-wallet-standard/pull/37))
-- chore(deps-dev): bump @metamask/auto-changelog from 5.0.1 to 5.0.2 ([#38](https://github.com/MetaMask/solana-wallet-standard/pull/38))
-- chore(deps-dev): bump @metamask/multichain-api-client ([#41](https://github.com/MetaMask/solana-wallet-standard/pull/41))
 - fix: gracefully handle cases where no account is provided in the scope ([#39](https://github.com/MetaMask/solana-wallet-standard/pull/39))
 
 ## [0.4.1]
