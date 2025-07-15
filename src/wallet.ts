@@ -222,13 +222,16 @@ export class MetamaskWallet implements Wallet {
     return results;
   };
 
-  #disconnect = async () => {
+  #disconnect = async (options: { revokeSession?: boolean } = {}) => {
+    const { revokeSession = true } = options;
     this.#account = undefined;
     this.scope = undefined;
     this.#removeAccountsChangedListener?.();
     this.#removeAccountsChangedListener = undefined;
     this.#emit('change', { accounts: this.accounts });
-    await this.client.revokeSession();
+    if (revokeSession) {
+      await this.client.revokeSession();
+    }
   };
 
   #signAndSendTransaction = async (
@@ -352,11 +355,7 @@ export class MetamaskWallet implements Wallet {
 
     // If no address is provided, disconnect
     if (!addressToSelect) {
-      console.log('No address to select, disconnecting');
-
-      await this.#disconnect();
-      console.log('this.accounts', this.accounts);
-
+      await this.#disconnect({ revokeSession: false });
       return;
     }
 
