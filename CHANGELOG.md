@@ -9,10 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.5.1]
 
-### Uncategorized
+### Fixed
 
 - fix: update #disconnect to not revoke session on Solana disconnect via account changed event ([#48](https://github.com/MetaMask/solana-wallet-standard/pull/48))
-- chore(deps-dev): bump @metamask/multichain-api-client ([#47](https://github.com/MetaMask/solana-wallet-standard/pull/47))
 
 ## [0.5.0]
 
