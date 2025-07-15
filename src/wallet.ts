@@ -355,6 +355,8 @@ export class MetamaskWallet implements Wallet {
 
     // If no address is provided, disconnect
     if (!addressToSelect) {
+      // An empty accountsChanged event means that the Solana scope was revoked outside of Wallet Standard.
+      // We don't revoke the session in this case to avoid side effects on EVM scopes
       await this.#disconnect({ revokeSession: false });
       return;
     }
