@@ -476,7 +476,7 @@ describe('MetamaskWallet', () => {
   });
 
   describe('handleAccountsChangedEvent', () => {
-    it('should disconnect when no address is provided', async () => {
+    it('should disconnect without revoking session when no address is provided', async () => {
       await connectAndSetAccount();
 
       // Setup account change listener
@@ -495,7 +495,7 @@ describe('MetamaskWallet', () => {
 
       // Verify account was removed and disconnect was called
       expect(wallet.accounts).toEqual([]);
-      expect(mockClient.revokeSession).toHaveBeenCalled();
+      expect(mockClient.revokeSession).not.toHaveBeenCalled();
       expect(changeListener).toHaveBeenCalledWith({ accounts: [] });
     });
 
