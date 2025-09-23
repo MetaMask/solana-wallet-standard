@@ -230,7 +230,7 @@ export class MetamaskWallet implements Wallet {
     this.#removeAccountsChangedListener = undefined;
     this.#emit('change', { accounts: this.accounts });
     if (revokeSession) {
-      await this.client.revokeSession();
+      await this.client.revokeSession({ scopes: [Scope.MAINNET, Scope.DEVNET, Scope.TESTNET] });
     }
   };
 
