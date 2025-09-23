@@ -9,9 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.6.0]
 
-### Uncategorized
+### Added
 
-- feat: allow partial revokes via `wallet_revokeSession` ([#53](https://github.com/MetaMask/solana-wallet-standard/pull/53))
+- Support partial revokes via `wallet_revokeSession` ([#53](https://github.com/MetaMask/solana-wallet-standard/pull/53))
+
+### Changed
+
 - chore(deps-dev): bump @metamask/auto-changelog from 5.0.2 to 5.1.0 ([#52](https://github.com/MetaMask/solana-wallet-standard/pull/52))
 - chore(deps-dev): bump vite in the npm_and_yarn group across 1 directory ([#51](https://github.com/MetaMask/solana-wallet-standard/pull/51))
 
