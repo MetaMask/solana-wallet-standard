@@ -522,9 +522,13 @@ describe('MetamaskWallet', () => {
         sessionScopes: {
           [Scope.MAINNET]: {
             accounts: [`${Scope.MAINNET}:${address}`],
+            methods: [],
+            notifications: [],
           },
           [Scope.DEVNET]: {
             accounts: [`${Scope.DEVNET}:${address}`],
+            methods: [],
+            notifications: [],
           },
         },
       };
