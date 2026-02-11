@@ -40,7 +40,12 @@ import { ReadonlyWalletAccount } from '@wallet-standard/wallet';
 import bs58 from 'bs58';
 import { metamaskIcon } from './icon';
 import { type CaipAccountId, type DeepWriteable, Scope, type WalletOptions } from './types';
-import { getAddressFromCaipAccountId, getScopeFromWalletStandardChain, isAccountChangedEvent } from './utils';
+import {
+  getAddressFromCaipAccountId,
+  getScopeFromWalletStandardChain,
+  isAccountChangedEvent,
+  isSessionChangedEvent,
+} from './utils';
 
 export class MetamaskWalletAccount extends ReadonlyWalletAccount {
   constructor({ address, publicKey, chains }: { address: string; publicKey: Uint8Array; chains: IdentifierArray }) {
@@ -67,6 +72,7 @@ export class MetamaskWallet implements Wallet {
   #selectedAddressOnPageLoadPromise: Promise<string | undefined> | undefined;
   #account: MetamaskWalletAccount | undefined;
   #removeAccountsChangedListener: (() => void) | undefined;
+  #removeSessionChangedListener: (() => void) | undefined;
 
   client: MultichainApiClient;
 
@@ -184,7 +190,10 @@ export class MetamaskWallet implements Wallet {
       return { accounts: [] };
     }
 
+    // I think it would be better if these were always listening
+    // Problem is that the MultichainApi Transports clear all listeners on disconnect
     this.#removeAccountsChangedListener = this.client.onNotification(this.#handleAccountsChangedEvent.bind(this));
+    this.#removeSessionChangedListener = this.client.onNotification(this.#handleSessionChangedEvent.bind(this));
     return { accounts: this.accounts };
   };
 
@@ -228,6 +237,8 @@ export class MetamaskWallet implements Wallet {
     this.scope = undefined;
     this.#removeAccountsChangedListener?.();
     this.#removeAccountsChangedListener = undefined;
+    this.#removeSessionChangedListener?.();
+    this.#removeSessionChangedListener = undefined;
     this.#emit('change', { accounts: this.accounts });
     if (revokeSession) {
       await this.client.revokeSession({ scopes: [Scope.MAINNET, Scope.DEVNET, Scope.TESTNET] });
@@ -341,6 +352,31 @@ export class MetamaskWallet implements Wallet {
 
     return results;
   };
+
+  /**
+   * Handles the wallet_sessionChanged event.
+   * Updates internal state to connected (with correct change event) when the session has Solana scopes,
+   * or to disconnected when it does not.
+   * @param data - The event data
+   */
+  async #handleSessionChangedEvent(data: any) {
+    if (!isSessionChangedEvent(data)) {
+      return;
+    }
+
+    const sessionScopes = Object.keys(data.params.sessionScopes);
+    const solanaScopes = [Scope.MAINNET, Scope.DEVNET, Scope.TESTNET];
+    const hasSolanaScope = sessionScopes.some((scope) => solanaScopes.includes(scope as Scope));
+
+    if (hasSolanaScope) {
+      // Only do this if we aren't already connected?
+      const session = await this.client.getSession();
+      this.updateSession(session, undefined); // not sure what account address to use here
+    } else {
+      // Only do this if we aren't already disconnected?
+      await this.#disconnect({ revokeSession: false });
+    }
+  }
 
   /**
    * Handles the accountsChanged event.
