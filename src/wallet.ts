@@ -333,8 +333,6 @@ export class MetamaskWallet implements Wallet {
     if (hasSolanaScope) {
       this.updateSession(data.params);
     } else {
-      // Only do this if we aren't already disconnected???
-
       // An empty accountsChanged event means that the Solana scope was revoked outside of Wallet Standard.
       // We don't revoke the session in this case to avoid side effects on EVM scopes
       await this.#disconnect({ revokeSession: false });
