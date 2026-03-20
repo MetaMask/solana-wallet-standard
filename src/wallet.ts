@@ -43,7 +43,6 @@ import { type CaipAccountId, type DeepWriteable, Scope, type WalletOptions } fro
 import {
   getAddressFromCaipAccountId,
   getScopeFromWalletStandardChain,
-  isAccountChangedEvent,
   isSessionChangedEvent,
 } from './utils';
 
@@ -69,37 +68,10 @@ export class MetamaskWallet implements Wallet {
   readonly icon = metamaskIcon;
   readonly chains: SolanaChain[] = [SOLANA_MAINNET_CHAIN, SOLANA_DEVNET_CHAIN, SOLANA_TESTNET_CHAIN];
   protected scope: Scope | undefined;
-  #selectedAddressOnPageLoadPromise: Promise<string | undefined> | undefined;
   #account: MetamaskWalletAccount | undefined;
-  #removeAccountsChangedListener: (() => void) | undefined;
   #removeSessionChangedListener: (() => void) | undefined;
 
   client: MultichainApiClient;
-
-  /**
-   * Listen for up to 2 seconds to the accountsChanged event emitted on page load
-   * @returns If any, the initial selected address
-   */
-  protected getInitialSelectedAddress(): Promise<string | undefined> {
-    return new Promise((resolve) => {
-      const timeout = setTimeout(() => {
-        resolve(undefined);
-      }, 2000);
-
-      const handleAccountChange = (data: any) => {
-        if (isAccountChangedEvent(data)) {
-          const address = data?.params?.notification?.params?.[0];
-          if (address) {
-            clearTimeout(timeout);
-            removeNotification?.();
-            resolve(address);
-          }
-        }
-      };
-
-      const removeNotification = this.client.onNotification(handleAccountChange);
-    });
-  }
 
   get accounts() {
     return this.#account ? [this.#account] : [];
@@ -149,7 +121,6 @@ export class MetamaskWallet implements Wallet {
   constructor({ client, walletName }: WalletOptions) {
     this.client = client;
     this.name = `${walletName ?? 'MetaMask'}` as const;
-    this.#selectedAddressOnPageLoadPromise = this.getInitialSelectedAddress();
   }
 
   #on: StandardEventsOnMethod = (event, listener) => {
@@ -192,7 +163,6 @@ export class MetamaskWallet implements Wallet {
 
     // I think it would be better if these were always listening
     // Problem is that the MultichainApi Transports clear all listeners on disconnect
-    this.#removeAccountsChangedListener = this.client.onNotification(this.#handleAccountsChangedEvent.bind(this));
     this.#removeSessionChangedListener = this.client.onNotification(this.#handleSessionChangedEvent.bind(this));
     return { accounts: this.accounts };
   };
@@ -235,8 +205,6 @@ export class MetamaskWallet implements Wallet {
     const { revokeSession = true } = options;
     this.#account = undefined;
     this.scope = undefined;
-    this.#removeAccountsChangedListener?.();
-    this.#removeAccountsChangedListener = undefined;
     this.#removeSessionChangedListener?.();
     this.#removeSessionChangedListener = undefined;
     this.#emit('change', { accounts: this.accounts });
@@ -369,36 +337,20 @@ export class MetamaskWallet implements Wallet {
     const hasSolanaScope = sessionScopes.some((scope) => solanaScopes.includes(scope as Scope));
 
     if (hasSolanaScope) {
-      // Only do this if we aren't already connected?
+      const selectedCaipAccountId: CaipAccountId | undefined =
+        (data.params.sessionScopes[Scope.MAINNET]?.accounts?.[0] as CaipAccountId | undefined) ??
+        (data.params.sessionScopes[Scope.DEVNET]?.accounts?.[0] as CaipAccountId | undefined) ??
+        (data.params.sessionScopes[Scope.TESTNET]?.accounts?.[0] as CaipAccountId | undefined);
+      const selectedAddress = selectedCaipAccountId ? getAddressFromCaipAccountId(selectedCaipAccountId) : undefined;
       const session = await this.client.getSession();
-      this.updateSession(session, undefined); // not sure what account address to use here
+      this.updateSession(session, selectedAddress);
     } else {
-      // Only do this if we aren't already disconnected?
-      await this.#disconnect({ revokeSession: false });
-    }
-  }
+      // Only do this if we aren't already disconnected???
 
-  /**
-   * Handles the accountsChanged event.
-   * @param data - The event data
-   */
-  async #handleAccountsChangedEvent(data: any) {
-    if (!isAccountChangedEvent(data)) {
-      return;
-    }
-
-    const addressToSelect = data?.params?.notification?.params?.[0];
-
-    // If no address is provided, disconnect
-    if (!addressToSelect) {
       // An empty accountsChanged event means that the Solana scope was revoked outside of Wallet Standard.
       // We don't revoke the session in this case to avoid side effects on EVM scopes
       await this.#disconnect({ revokeSession: false });
-      return;
     }
-
-    const session = await this.client.getSession();
-    this.updateSession(session, addressToSelect);
   }
 
   /**
@@ -408,7 +360,7 @@ export class MetamaskWallet implements Wallet {
    * 1. First tries to find an available scope in order: mainnet > devnet > testnet, supposing the same set of accounts
    *    is available for all Solana scopes
    * 2. For account selection:
-   *    - First tries to use the selectedAddress param, most likely coming from the accountsChanged event
+   *    - First tries to use the selectedAddress param, most likely coming from wallet_sessionChanged
    *    - Falls back to the previously saved account if it exists in the scope
    *    - Finally defaults to the first account in the scope
    *
@@ -493,35 +445,20 @@ export class MetamaskWallet implements Wallet {
         return;
       }
 
-      // Get the account from accountChanged emitted on page load, if any
-      const account = await this.#selectedAddressOnPageLoadPromise;
-      this.updateSession(existingSession, account);
+      const selectedCaipAccountId: CaipAccountId | undefined =
+        (existingSession?.sessionScopes[Scope.MAINNET]?.accounts?.[0] as CaipAccountId | undefined) ??
+        (existingSession?.sessionScopes[Scope.DEVNET]?.accounts?.[0] as CaipAccountId | undefined) ??
+        (existingSession?.sessionScopes[Scope.TESTNET]?.accounts?.[0] as CaipAccountId | undefined);
+      const selectedAddress = selectedCaipAccountId ? getAddressFromCaipAccountId(selectedCaipAccountId) : undefined;
+
+
+      this.updateSession(existingSession, selectedAddress);
     } catch (error) {
       console.warn('Error restoring session', error);
     }
   };
 
   #createSession = async (scope: Scope, addresses?: string[]): Promise<void> => {
-    let resolvePromise: (value: string) => void;
-    const waitForAccountChangedPromise = new Promise<string>((resolve) => {
-      resolvePromise = resolve;
-    });
-
-    // If there are multiple accounts, wait for the first accountChanged event to know which one to use
-    const handleAccountChange = (data: any) => {
-      if (!isAccountChangedEvent(data)) {
-        return;
-      }
-      const selectedAddress = data?.params?.notification?.params?.[0];
-
-      if (selectedAddress) {
-        removeNotification();
-        resolvePromise(selectedAddress);
-      }
-    };
-
-    const removeNotification = this.client.onNotification(handleAccountChange);
-
     const session = await this.client.createSession({
       optionalScopes: {
         [scope]: {
@@ -531,15 +468,17 @@ export class MetamaskWallet implements Wallet {
         },
       },
       sessionProperties: {
+        // This is still needed to help the wallet identify our injected solana provider.
+        // It isn't needed any longer for enabling metamask_accountsChanged events.
         solana_accountChanged_notifications: true,
       },
     });
 
-    // Wait for the accountChanged event to know which one to use, timeout after 200ms
-    const selectedAddress = await Promise.race([
-      waitForAccountChangedPromise,
-      new Promise<undefined>((resolve) => setTimeout(() => resolve(undefined), 200)),
-    ]);
+      const selectedCaipAccountId: CaipAccountId | undefined =
+        (session?.sessionScopes[Scope.MAINNET]?.accounts?.[0] as CaipAccountId | undefined) ??
+        (session?.sessionScopes[Scope.DEVNET]?.accounts?.[0] as CaipAccountId | undefined) ??
+        (session?.sessionScopes[Scope.TESTNET]?.accounts?.[0] as CaipAccountId | undefined);
+      const selectedAddress = selectedCaipAccountId ? getAddressFromCaipAccountId(selectedCaipAccountId) : undefined;
 
     this.updateSession(session, selectedAddress);
   };
