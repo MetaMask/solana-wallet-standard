@@ -337,13 +337,7 @@ export class MetamaskWallet implements Wallet {
     const hasSolanaScope = sessionScopes.some((scope) => solanaScopes.includes(scope as Scope));
 
     if (hasSolanaScope) {
-      const selectedCaipAccountId: CaipAccountId | undefined =
-        (data.params.sessionScopes[Scope.MAINNET]?.accounts?.[0] as CaipAccountId | undefined) ??
-        (data.params.sessionScopes[Scope.DEVNET]?.accounts?.[0] as CaipAccountId | undefined) ??
-        (data.params.sessionScopes[Scope.TESTNET]?.accounts?.[0] as CaipAccountId | undefined);
-      const selectedAddress = selectedCaipAccountId ? getAddressFromCaipAccountId(selectedCaipAccountId) : undefined;
-      const session = await this.client.getSession();
-      this.updateSession(session, selectedAddress);
+      const selectedAddress = this.#getSelectedSolanaAddressFromSessionScopes(data.params.sessionScopes);
     } else {
       // Only do this if we aren't already disconnected???
 
@@ -401,7 +395,7 @@ export class MetamaskWallet implements Wallet {
     }
     // Otherwise select first account
     else {
-      addressToConnect = getAddressFromCaipAccountId(scopeAccounts[0]);
+      addressToConnect = this.#getAddressFromCaipAccountId(scopeAccounts[0] as CaipAccountId);
     }
 
     // Update the account and scope
@@ -416,6 +410,18 @@ export class MetamaskWallet implements Wallet {
       publicKey: new Uint8Array(bs58.decode(address)),
       chains: this.chains,
     });
+  }
+
+  #getAddressFromCaipAccountId(caipAccountId: CaipAccountId): string {
+    return getAddressFromCaipAccountId(caipAccountId);
+  }
+
+  #getSelectedSolanaAddressFromSessionScopes(sessionScopes: SessionData['sessionScopes'] | undefined): string | undefined {
+    const selectedCaipAccountId: CaipAccountId | undefined =
+      (sessionScopes?.[Scope.MAINNET]?.accounts?.[0] as CaipAccountId | undefined) ??
+      (sessionScopes?.[Scope.DEVNET]?.accounts?.[0] as CaipAccountId | undefined) ??
+      (sessionScopes?.[Scope.TESTNET]?.accounts?.[0] as CaipAccountId | undefined);
+    return selectedCaipAccountId ? this.#getAddressFromCaipAccountId(selectedCaipAccountId) : undefined;
   }
 
   #validateSendTransactionInput = (inputs: SolanaSignAndSendTransactionInput[]) => {
@@ -445,13 +451,7 @@ export class MetamaskWallet implements Wallet {
         return;
       }
 
-      const selectedCaipAccountId: CaipAccountId | undefined =
-        (existingSession?.sessionScopes[Scope.MAINNET]?.accounts?.[0] as CaipAccountId | undefined) ??
-        (existingSession?.sessionScopes[Scope.DEVNET]?.accounts?.[0] as CaipAccountId | undefined) ??
-        (existingSession?.sessionScopes[Scope.TESTNET]?.accounts?.[0] as CaipAccountId | undefined);
-      const selectedAddress = selectedCaipAccountId ? getAddressFromCaipAccountId(selectedCaipAccountId) : undefined;
-
-
+      const selectedAddress = this.#getSelectedSolanaAddressFromSessionScopes(existingSession?.sessionScopes);
       this.updateSession(existingSession, selectedAddress);
     } catch (error) {
       console.warn('Error restoring session', error);
@@ -474,12 +474,7 @@ export class MetamaskWallet implements Wallet {
       },
     });
 
-      const selectedCaipAccountId: CaipAccountId | undefined =
-        (session?.sessionScopes[Scope.MAINNET]?.accounts?.[0] as CaipAccountId | undefined) ??
-        (session?.sessionScopes[Scope.DEVNET]?.accounts?.[0] as CaipAccountId | undefined) ??
-        (session?.sessionScopes[Scope.TESTNET]?.accounts?.[0] as CaipAccountId | undefined);
-      const selectedAddress = selectedCaipAccountId ? getAddressFromCaipAccountId(selectedCaipAccountId) : undefined;
-
+    const selectedAddress = this.#getSelectedSolanaAddressFromSessionScopes(session?.sessionScopes);
     this.updateSession(session, selectedAddress);
   };
 }
