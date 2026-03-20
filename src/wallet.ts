@@ -157,8 +157,6 @@ export class MetamaskWallet implements Wallet {
       return { accounts: [] };
     }
 
-    // I think it would be better if these were always listening
-    // Problem is that the MultichainApi Transports clear all listeners on disconnect
     this.#removeSessionChangedListener = this.client.onNotification(this.#handleSessionChangedEvent.bind(this));
     return { accounts: this.accounts };
   };
