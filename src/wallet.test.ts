@@ -28,17 +28,10 @@ describe('MetamaskWallet', () => {
   let mockClient: ReturnType<typeof createMockClient>;
   let notificationHandler: ReturnType<typeof vi.fn>;
 
-  // Emit account change event
-  const emitAccountChange = (address: string) => {
-    notificationHandler({
-      params: {
-        notification: {
-          method: 'metamask_accountsChanged',
-          params: [address],
-        },
-      },
-    });
-  };
+  const clearedSolanaSessionPayload = () => ({
+    method: 'wallet_sessionChanged' as const,
+    params: { sessionScopes: {} },
+  });
 
   const setupNotificationHandler = () => {
     notificationHandler = vi.fn();
@@ -51,12 +44,7 @@ describe('MetamaskWallet', () => {
     mockCreateSession(mockClient, [_address]);
     setupNotificationHandler();
 
-    const connectPromise = wallet.features[StandardConnect].connect();
-
-    // Emit account change event
-    emitAccountChange(_address);
-
-    return connectPromise;
+    return wallet.features[StandardConnect].connect();
   };
 
   // Helper to connect wallet and set account
@@ -64,20 +52,13 @@ describe('MetamaskWallet', () => {
     mockGetSession(mockClient, [_address]);
     setupNotificationHandler();
 
-    const connectPromise = wallet.features[StandardConnect].connect();
-
-    // Emit account change event
-    emitAccountChange(_address);
-
-    return connectPromise;
+    return wallet.features[StandardConnect].connect();
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
     mockClient = createMockClient();
     wallet = new MetamaskWallet({ client: mockClient, walletName: 'MetaMask Test' });
-    // Mock #getInitialSelectedAddress private method to resolve immediately with undefined
-    vi.spyOn(MetamaskWallet.prototype as any, 'getInitialSelectedAddress').mockResolvedValue(undefined);
   });
 
   describe('constructor', () => {
@@ -355,9 +336,6 @@ describe('MetamaskWallet', () => {
         statement: 'Sign in to test app',
       });
 
-      // Simulate accountsChanged event to complete connection
-      emitAccountChange(address);
-
       const results = await signInPromise;
 
       // Verify signIn was called
@@ -483,15 +461,7 @@ describe('MetamaskWallet', () => {
       const changeListener = vi.fn();
       wallet.features[StandardEvents].on('change', changeListener);
 
-      // Simulate accountsChanged event with no address
-      await notificationHandler({
-        params: {
-          notification: {
-            method: 'metamask_accountsChanged',
-            params: [],
-          },
-        },
-      });
+      await notificationHandler(clearedSolanaSessionPayload());
 
       // Verify account was removed and disconnect was called
       expect(wallet.accounts).toEqual([]);
@@ -500,12 +470,11 @@ describe('MetamaskWallet', () => {
     });
 
     it('should use address from getInitialSelectedAddress', async () => {
-      // Mocks
-      vi.spyOn(MetamaskWallet.prototype as any, 'getInitialSelectedAddress').mockResolvedValue(address2);
-      mockCreateSession(mockClient, [address, address2]);
-      mockGetSession(mockClient, [address, address2]);
+      // Mocks: first account in session is used (replaces legacy getInitialSelectedAddress selection)
+      mockCreateSession(mockClient, [address2, address]);
+      mockGetSession(mockClient, [address2, address]);
 
-      // Create new wallet with mocked getInitialSelectedAddress
+      // Create new wallet
       const walletWithInitialAddress = new MetamaskWallet({ client: mockClient });
 
       // Connect and verify the address from getInitialSelectedAddress was used
@@ -535,7 +504,7 @@ describe('MetamaskWallet', () => {
     });
 
     it('should update account and scope to the first available scope in priority order', () => {
-      (wallet as any).updateSession(session, undefined);
+      (wallet as any).updateSession(session);
 
       expect(wallet.accounts[0]?.address).toBe(address);
       expect((wallet as any).scope).toBe(Scope.MAINNET);
@@ -572,7 +541,7 @@ describe('MetamaskWallet', () => {
     });
 
     it('should set account to undefined if no scopes are available', () => {
-      (wallet as any).updateSession({ sessionScopes: {} }, undefined);
+      (wallet as any).updateSession({ sessionScopes: {} });
 
       expect(wallet.accounts).toEqual([]);
       expect((wallet as any).scope).toBeUndefined();
@@ -585,7 +554,6 @@ describe('MetamaskWallet', () => {
             [Scope.MAINNET]: { accounts: [] },
           },
         },
-        undefined,
       );
 
       expect(wallet.accounts).toEqual([]);
@@ -596,7 +564,7 @@ describe('MetamaskWallet', () => {
       const changeListener = vi.fn();
       wallet.features[StandardEvents].on('change', changeListener);
 
-      (wallet as any).updateSession(session, address);
+      (wallet as any).updateSession(session);
 
       expect(changeListener).toHaveBeenCalledWith({ accounts: wallet.accounts });
     });
