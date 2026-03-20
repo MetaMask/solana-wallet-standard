@@ -38,11 +38,6 @@ export function getScopeFromWalletStandardChain(chainId: CaipChainIdStruct | und
   }
 }
 
-// This isn't checking the scope
-export function isAccountChangedEvent(event: any) {
-  return isSessionChangedEvent(event) && event.params?.notification?.method === 'metamask_accountsChanged';
-}
-
 export function isSessionChangedEvent(event: any) {
   return event.method === 'wallet_sessionChanged';
 }

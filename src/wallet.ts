@@ -40,11 +40,7 @@ import { ReadonlyWalletAccount } from '@wallet-standard/wallet';
 import bs58 from 'bs58';
 import { metamaskIcon } from './icon';
 import { type CaipAccountId, type DeepWriteable, Scope, type WalletOptions } from './types';
-import {
-  getAddressFromCaipAccountId,
-  getScopeFromWalletStandardChain,
-  isSessionChangedEvent,
-} from './utils';
+import { getAddressFromCaipAccountId, getScopeFromWalletStandardChain, isSessionChangedEvent } from './utils';
 
 export class MetamaskWalletAccount extends ReadonlyWalletAccount {
   constructor({ address, publicKey, chains }: { address: string; publicKey: Uint8Array; chains: IdentifierArray }) {
@@ -378,7 +374,7 @@ export class MetamaskWallet implements Wallet {
       return;
     }
 
-  const addressToConnect = getAddressFromCaipAccountId(selectedAccountId);
+    const addressToConnect = getAddressFromCaipAccountId(selectedAccountId);
 
     // Update the account and scope
     this.#account = this.#getAccountFromAddress(addressToConnect);
