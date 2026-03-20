@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Add `wallet_sessionChanged` listener for handling selecting account changes and for auto connecting and disconnecting the provider when session changes are initiated outside of the provider itself ([#65](https://github.com/MetaMask/solana-wallet-standard/pull/65))
+
+### Removed
+- Remove `metamask_accountsChanged` listener [#65](https://github.com/MetaMask/solana-wallet-standard/pull/65)
+
+
 ## [0.6.0]
 
 ### Added
