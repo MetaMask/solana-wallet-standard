@@ -338,6 +338,7 @@ export class MetamaskWallet implements Wallet {
 
     if (hasSolanaScope) {
       const selectedAddress = this.#getSelectedSolanaAddressFromSessionScopes(data.params.sessionScopes);
+      this.updateSession(data.params, selectedAddress);
     } else {
       // Only do this if we aren't already disconnected???
 
