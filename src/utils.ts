@@ -1,5 +1,6 @@
 import { SOLANA_DEVNET_CHAIN, SOLANA_MAINNET_CHAIN, SOLANA_TESTNET_CHAIN } from '@solana/wallet-standard-chains';
 import { type CaipAccountId, type CaipChainIdStruct, Scope, scopes } from './types';
+import type { SessionData } from '@metamask/multichain-api-client';
 
 export const CAIP_ACCOUNT_ID_REGEX =
   /^(?<chainId>(?<namespace>[-a-z0-9]{3,8}):(?<reference>[-_a-zA-Z0-9]{1,32})):(?<accountAddress>[-.%a-zA-Z0-9]{1,128})$/u;
@@ -38,6 +39,9 @@ export function getScopeFromWalletStandardChain(chainId: CaipChainIdStruct | und
   }
 }
 
-export function isSessionChangedEvent(event: any) {
+export function isSessionChangedEvent(event: any): event is {
+  method: 'wallet_sessionChanged';
+  params: SessionData;
+} {
   return event.method === 'wallet_sessionChanged';
 }
