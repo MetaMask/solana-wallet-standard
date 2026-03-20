@@ -433,8 +433,10 @@ export class MetamaskWallet implements Wallet {
         },
       },
       sessionProperties: {
-        // This is still needed to help the wallet identify our injected solana provider.
-        // It isn't needed any longer for enabling metamask_accountsChanged events.
+        // Previously this was needed to enable metamask_accountsChanged events for Solana.
+        // This isn't needed for that purpose since we now use wallet_sessionChanged events.
+        // However this is still needed to help the wallet identify our injected solana provider
+        // until we migrate to a more accurate property name.
         solana_accountChanged_notifications: true,
       },
     });
