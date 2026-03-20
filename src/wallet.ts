@@ -117,6 +117,10 @@ export class MetamaskWallet implements Wallet {
   constructor({ client, walletName }: WalletOptions) {
     this.client = client;
     this.name = `${walletName ?? 'MetaMask'}` as const;
+
+    // TODO: talk with Baptiste and Edouard about this
+    this.#tryRestoringSession();
+    this.#removeSessionChangedListener = this.client.onNotification(this.#handleSessionChangedEvent.bind(this));
   }
 
   #on: StandardEventsOnMethod = (event, listener) => {
