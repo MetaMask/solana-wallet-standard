@@ -206,12 +206,12 @@ export class MetamaskWallet implements Wallet {
     const { revokeSession = true } = options;
     this.#account = undefined;
     this.scope = undefined;
-    this.#removeSessionChangedListener?.();
-    this.#removeSessionChangedListener = undefined;
     if (wasConnected) {
       this.#emit('change', { accounts: this.accounts });
     }
     if (revokeSession) {
+      this.#removeSessionChangedListener?.();
+      this.#removeSessionChangedListener = undefined;
       await this.client.revokeSession({ scopes: [Scope.MAINNET, Scope.DEVNET, Scope.TESTNET] });
     }
   };
@@ -385,7 +385,7 @@ export class MetamaskWallet implements Wallet {
     const previousAccount = this.#account;
     this.#account = this.#getAccountFromAddress(addressToConnect);
     this.scope = scope;
-    if (this.#account !== previousAccount) {
+    if (this.#account.address !== previousAccount?.address) {
       this.#emit('change', { accounts: this.accounts });
     }
   }
