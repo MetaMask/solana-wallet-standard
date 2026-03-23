@@ -87,6 +87,8 @@
     "allowScripts": {
       "@lavamoat/preinstall-always-fail": false,
       "vite>esbuild": false,
+      "vitest>vite>esbuild": false,
+      "vitest>vite-node>vite>esbuild": false,
       "@biomejs/biome": false
     }
   }
