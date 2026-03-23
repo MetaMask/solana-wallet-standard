@@ -9,7 +9,7 @@ import {
 import type { WalletAccount } from '@wallet-standard/base';
 import { StandardConnect, StandardDisconnect, StandardEvents } from '@wallet-standard/features';
 import bs58 from 'bs58';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   mockAddress as address,
   mockAddress2 as address2,
@@ -62,12 +62,41 @@ describe('MetamaskWallet', () => {
   });
 
   describe('constructor', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
     it('should initialize with correct properties', () => {
       expect(wallet.version).toBe('1.0.0');
       expect(wallet.name).toBe('MetaMask Test');
       expect(wallet.icon).toBeDefined();
       expect(wallet.chains).toContain(SOLANA_MAINNET_CHAIN);
       expect(wallet.accounts).toEqual([]);
+    });
+
+    it('registers wallet_sessionChanged listener and attempts session restore on construction', async () => {
+      const localClient = createMockClient();
+      const w = new MetamaskWallet({ client: localClient, walletName: 'MetaMask Test' });
+
+      expect(localClient.onNotification).toHaveBeenCalledTimes(1);
+      await vi.runAllTimersAsync();
+      expect(localClient.getSession).toHaveBeenCalled();
+      expect(w.accounts).toEqual([]);
+    });
+
+    it('restores Solana account when getSession returns a session during construction', async () => {
+      const localClient = createMockClient();
+      mockGetSession(localClient, [address]);
+      const w = new MetamaskWallet({ client: localClient, walletName: 'MetaMask Test' });
+
+      await vi.runAllTimersAsync();
+
+      expect(w.accounts.length).toBe(1);
+      expect(w.accounts[0]?.address).toBe(address);
     });
 
     it('should initialize with default properties', () => {
@@ -164,6 +193,15 @@ describe('MetamaskWallet', () => {
       expect(wallet.accounts).toEqual([]);
       expect(mockClient.revokeSession).toHaveBeenCalled();
       expect(changeListener).toHaveBeenCalledWith({ accounts: [] });
+    });
+
+    it('should not emit change when disconnecting while already disconnected', async () => {
+      const changeListener = vi.fn();
+      wallet.features[StandardEvents].on('change', changeListener);
+
+      await wallet.features[StandardDisconnect].disconnect();
+
+      expect(changeListener).not.toHaveBeenCalled();
     });
   });
 
@@ -453,8 +491,8 @@ describe('MetamaskWallet', () => {
     });
   });
 
-  describe('handleAccountsChangedEvent', () => {
-    it('should disconnect without revoking session when no address is provided', async () => {
+  describe('handleSessionChangedEvent', () => {
+    it('should disconnect without revoking session when session has no Solana scopes', async () => {
       await connectAndSetAccount();
 
       // Setup account change listener
@@ -467,6 +505,49 @@ describe('MetamaskWallet', () => {
       expect(wallet.accounts).toEqual([]);
       expect(mockClient.revokeSession).not.toHaveBeenCalled();
       expect(changeListener).toHaveBeenCalledWith({ accounts: [] });
+    });
+
+    it('updates account and emits change when wallet_sessionChanged includes Solana with a new first account', async () => {
+      await connectAndSetAccount();
+
+      const changeListener = vi.fn();
+      wallet.features[StandardEvents].on('change', changeListener);
+
+      await notificationHandler({
+        method: 'wallet_sessionChanged' as const,
+        params: {
+          sessionScopes: {
+            [Scope.MAINNET]: {
+              accounts: [`${Scope.MAINNET}:${address2}`],
+              methods: [],
+              notifications: [],
+            },
+          },
+        },
+      });
+
+      expect(wallet.accounts[0]?.address).toBe(address2);
+      expect(changeListener).toHaveBeenCalledWith({ accounts: wallet.accounts });
+    });
+
+    it('ignores non-wallet_sessionChanged notifications', async () => {
+      await connectAndSetAccount();
+
+      const changeListener = vi.fn();
+      wallet.features[StandardEvents].on('change', changeListener);
+      changeListener.mockClear();
+
+      await notificationHandler({
+        params: {
+          notification: {
+            method: 'metamask_accountsChanged',
+            params: [address2],
+          },
+        },
+      });
+
+      expect(wallet.accounts[0]?.address).toBe(address);
+      expect(changeListener).not.toHaveBeenCalled();
     });
 
     it('should use address from getInitialSelectedAddress', async () => {
@@ -565,6 +646,17 @@ describe('MetamaskWallet', () => {
       (wallet as any).updateSession(session);
 
       expect(changeListener).toHaveBeenCalledWith({ accounts: wallet.accounts });
+    });
+
+    it('should not emit change when updateSession keeps the same account address', () => {
+      const changeListener = vi.fn();
+      wallet.features[StandardEvents].on('change', changeListener);
+
+      (wallet as any).updateSession(session);
+      changeListener.mockClear();
+      (wallet as any).updateSession(session);
+
+      expect(changeListener).not.toHaveBeenCalled();
     });
   });
 });
