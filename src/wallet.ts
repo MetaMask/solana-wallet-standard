@@ -200,12 +200,15 @@ export class MetamaskWallet implements Wallet {
   };
 
   #disconnect = async (options: { revokeSession?: boolean } = {}) => {
+    const wasConnected = Boolean(this.#account);
     const { revokeSession = true } = options;
     this.#account = undefined;
     this.scope = undefined;
     this.#removeSessionChangedListener?.();
     this.#removeSessionChangedListener = undefined;
-    this.#emit('change', { accounts: this.accounts });
+    if (wasConnected) {
+      this.#emit('change', { accounts: this.accounts });
+    }
     if (revokeSession) {
       await this.client.revokeSession({ scopes: [Scope.MAINNET, Scope.DEVNET, Scope.TESTNET] });
     }
@@ -377,9 +380,12 @@ export class MetamaskWallet implements Wallet {
     const addressToConnect = getAddressFromCaipAccountId(selectedAccountId);
 
     // Update the account and scope
+    const previousAccount = this.#account;
     this.#account = this.#getAccountFromAddress(addressToConnect);
     this.scope = scope;
-    this.#emit('change', { accounts: this.accounts });
+    if (this.#account !== previousAccount) {
+      this.#emit('change', { accounts: this.accounts });
+    }
   }
 
   #getAccountFromAddress(address: string) {

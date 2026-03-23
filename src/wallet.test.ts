@@ -511,30 +511,30 @@ describe('MetamaskWallet', () => {
     });
 
     it('should use the selectedAddress if provided and valid', () => {
-      (wallet as any).updateSession(session, address);
+      (wallet as any).updateSession(session);
 
       expect(wallet.accounts[0]?.address).toBe(address);
       expect((wallet as any).scope).toBe(Scope.MAINNET);
     });
 
     it("should default to the first account in the scope if selectedAddress doesn't exists", () => {
-      (wallet as any).updateSession(session, address2);
+      (wallet as any).updateSession(session);
 
       expect(wallet.accounts[0]?.address).toBe(address);
       expect((wallet as any).scope).toBe(Scope.MAINNET);
     });
 
     it('should fall back to the previously saved account if selectedAddress is not provided', () => {
-      (wallet as any).updateSession(session, undefined);
+      (wallet as any).updateSession(session);
 
       const previousAccount = wallet.accounts[0];
-      (wallet as any).updateSession(session, undefined);
+      (wallet as any).updateSession(session);
 
       expect(wallet.accounts[0]).toEqual(previousAccount);
     });
 
     it('should default to the first account in the scope if no selectedAddress or previous account exists', () => {
-      (wallet as any).updateSession(session, undefined);
+      (wallet as any).updateSession(session);
 
       expect(wallet.accounts[0]?.address).toBe(address);
       expect((wallet as any).scope).toBe(Scope.MAINNET);
