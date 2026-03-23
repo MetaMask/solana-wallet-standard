@@ -161,7 +161,6 @@ export class MetamaskWallet implements Wallet {
       return { accounts: [] };
     }
 
-
     this.#removeSessionChangedListener?.();
     this.#removeSessionChangedListener = this.client.onNotification(this.#handleSessionChangedEvent.bind(this));
 

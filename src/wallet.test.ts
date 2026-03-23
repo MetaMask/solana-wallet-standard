@@ -548,13 +548,11 @@ describe('MetamaskWallet', () => {
     });
 
     it('should set account to undefined if the scope has no accounts', () => {
-      (wallet as any).updateSession(
-        {
-          sessionScopes: {
-            [Scope.MAINNET]: { accounts: [] },
-          },
+      (wallet as any).updateSession({
+        sessionScopes: {
+          [Scope.MAINNET]: { accounts: [] },
         },
-      );
+      });
 
       expect(wallet.accounts).toEqual([]);
       expect((wallet as any).scope).toBeUndefined();
