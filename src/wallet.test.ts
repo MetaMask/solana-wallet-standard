@@ -28,7 +28,7 @@ describe('MetamaskWallet', () => {
   let mockClient: ReturnType<typeof createMockClient>;
   let notificationHandler: ReturnType<typeof vi.fn>;
 
-  const clearedSolanaSessionPayload = () => ({
+  const emptySolanaSessionPayload = () => ({
     method: 'wallet_sessionChanged' as const,
     params: { sessionScopes: {} },
   });
@@ -499,7 +499,7 @@ describe('MetamaskWallet', () => {
       const changeListener = vi.fn();
       wallet.features[StandardEvents].on('change', changeListener);
 
-      await notificationHandler(clearedSolanaSessionPayload());
+      await notificationHandler(emptySolanaSessionPayload());
 
       // Verify account was removed and disconnect was called
       expect(wallet.accounts).toEqual([]);
