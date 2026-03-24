@@ -507,7 +507,7 @@ describe('MetamaskWallet', () => {
       expect(changeListener).toHaveBeenCalledWith({ accounts: [] });
     });
 
-    it('updates account and emits change when wallet_sessionChanged includes Solana with a new first account', async () => {
+    it('updates account and emits change when `wallet_sessionChanged` includes a Solana scope with an account value in the 0th index of the accounts array that is different from the previous 0th indexed value', async () => {
       await connectAndSetAccount();
 
       const changeListener = vi.fn();
