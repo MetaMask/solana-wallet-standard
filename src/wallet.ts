@@ -445,6 +445,7 @@ export class MetamaskWallet implements Wallet {
         // This isn't needed for that purpose since we now use wallet_sessionChanged events.
         // However this is still needed to help the wallet identify our injected solana provider
         // until we migrate to a more accurate property name.
+        // See: https://github.com/MetaMask/metamask-extension/blob/70dd748af54b58ceb8e78d227b6bdf118fb8e7ba/ui/pages/multichain-accounts/multichain-accounts-connect-page/multichain-accounts-connect-page.tsx#L169-L174
         solana_accountChanged_notifications: true,
       },
     });
