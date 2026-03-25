@@ -58,6 +58,9 @@ export class MetamaskWalletAccount extends ReadonlyWalletAccount {
 }
 
 export class MetamaskWallet implements Wallet {
+  // list of scopes in priority order for resolving selected account
+  static readonly scopes = [Scope.MAINNET, Scope.DEVNET, Scope.TESTNET] as const;
+
   readonly #listeners: { [E in StandardEventsNames]?: StandardEventsListeners[E][] } = {};
   readonly version = '1.0.0' as const;
   readonly name;
@@ -212,7 +215,7 @@ export class MetamaskWallet implements Wallet {
     if (revokeSession) {
       this.#removeSessionChangedListener?.();
       this.#removeSessionChangedListener = undefined;
-      await this.client.revokeSession({ scopes: [Scope.MAINNET, Scope.DEVNET, Scope.TESTNET] });
+      await this.client.revokeSession({ scopes: [...MetamaskWallet.scopes] });
     }
   };
 
@@ -336,8 +339,7 @@ export class MetamaskWallet implements Wallet {
     }
 
     const sessionScopes = Object.keys(data.params.sessionScopes);
-    const solanaScopes = [Scope.MAINNET, Scope.DEVNET, Scope.TESTNET];
-    const hasSolanaScope = sessionScopes.some((scope) => solanaScopes.includes(scope as Scope));
+    const hasSolanaScope = sessionScopes.some((scope) => MetamaskWallet.scopes.includes(scope as Scope));
 
     if (hasSolanaScope) {
       this.updateSession(data.params);
@@ -361,8 +363,7 @@ export class MetamaskWallet implements Wallet {
     const sessionScopes = new Set(Object.keys(session?.sessionScopes ?? {}));
 
     // Find the first available scope in priority order: mainnet > devnet > testnet.
-    const scopePriorityOrder = [Scope.MAINNET, Scope.DEVNET, Scope.TESTNET];
-    const scope = scopePriorityOrder.find((scope) => sessionScopes.has(scope));
+    const scope = MetamaskWallet.scopes.find((s) => sessionScopes.has(s));
 
     // If no scope is available, don't disconnect so that we can create/update a new session
     if (!scope) {
