@@ -550,16 +550,14 @@ describe('MetamaskWallet', () => {
       expect(changeListener).not.toHaveBeenCalled();
     });
 
-    it('should use address from getInitialSelectedAddress', async () => {
-      // Mocks: first account in session is used (replaces legacy getInitialSelectedAddress selection)
+    it('should use the first account in the session when multiple accounts are permissioned', async () => {
+      // `updateSession` takes the first CAIP account on the highest-priority Solana scope; list address2 first.
       mockCreateSession(mockClient, [address2, address]);
       mockGetSession(mockClient, [address2, address]);
 
-      // Create new wallet
-      const walletWithInitialAddress = new MetamaskWallet({ client: mockClient });
+      const walletWithMultipleAccounts = new MetamaskWallet({ client: mockClient });
 
-      // Connect and verify the address from getInitialSelectedAddress was used
-      const result = await walletWithInitialAddress.features[StandardConnect].connect();
+      const result = await walletWithMultipleAccounts.features[StandardConnect].connect();
       expect(result.accounts[0]?.address).toBe(address2);
     });
   });
